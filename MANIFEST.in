@@ -1,0 +1,3 @@
+recursive-include pretix_ticket_request/static *
+recursive-include pretix_ticket_request/templates *
+recursive-include pretix_ticket_request/locale *
