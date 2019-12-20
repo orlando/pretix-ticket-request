@@ -14,3 +14,7 @@ urlpatterns = [
         name='list',
     ),
 ]
+
+event_patterns = [
+    url(r'^ticket-request/', views.TicketRequestCreate.as_view(), name='request'),
+]

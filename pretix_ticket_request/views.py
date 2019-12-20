@@ -4,8 +4,9 @@ from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.generic import (TemplateView, ListView)
 from pretix.base.models import Event
+from pretix.base.forms import I18nModelForm
 from pretix.control.views.event import (
-    EventSettingsFormView, EventSettingsViewMixin,
+    EventSettingsFormView, EventSettingsViewMixin, CreateView
 )
 from pretix.control.permissions import EventPermissionRequiredMixin, event_permission_required
 from pretix.presale.utils import event_view
@@ -40,6 +41,28 @@ class TicketRequestList(EventPermissionRequiredMixin, ListView):
     context_object_name = 'ticket_requests'
     paginate_by = 20
     template_name = 'pretix_ticket_request/index.html'
+    permission = 'can_change_event_settings'
+
+    def get_queryset(self):
+        return TicketRequest.objects.filter(event=self.request.event)
+
+
+class TicketRequestForm(I18nModelForm):
+    def __init__(self, *args, **kwargs):
+        self.event = kwargs.get('event')
+        super().__init__(*args, **kwargs)
+
+    class Meta:
+        model = TicketRequest
+        fields = (
+            'email',
+        )
+
+
+class TicketRequestCreate(CreateView):
+    model = TicketRequest
+    form_class = TicketRequestForm
+    template_name = 'pretix_ticket_request/form.html'
     permission = 'can_change_event_settings'
 
     def get_queryset(self):
