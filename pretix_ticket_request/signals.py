@@ -11,7 +11,7 @@ def navbar_info(sender, request, **kwargs):
     url = resolve(request.path_info)
     return [
         {
-            'label': _('Ticket Requests'),
+            'label': _('Ticket request'),
             'icon': 'flag',
             'url': reverse(
                 'plugins:pretix_ticket_request:control',
@@ -20,6 +20,19 @@ def navbar_info(sender, request, **kwargs):
                     'organizer': request.organizer.slug,
                 },
             ),
-            'active': url.namespace == 'plugins:pretix_ticket_request',
+            'active': False,
+            'children': [
+                {
+                    'label': _('Settings'),
+                    'url': reverse(
+                        'plugins:pretix_ticket_request:control',
+                        kwargs={
+                            'event': request.event.slug,
+                            'organizer': request.organizer.slug,
+                        },
+                    ),
+                    'active': url.namespace == 'plugins:pretix_ticket_request'
+                },
+            ]
         }
     ]

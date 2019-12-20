@@ -1,5 +1,4 @@
 import json
-import pdb
 
 from django import forms
 from django.db.models.query import QuerySet
@@ -9,16 +8,24 @@ from i18nfield.forms import (
 )
 from pretix.base.forms import SettingsForm
 from pretix.base.forms.widgets import DatePickerWidget
-from pretix.base.models import Item
+from pretix.base.models import (Item, Quota)
 
 
 class TicketRequestsSettingsForm(I18nForm, SettingsForm):
-    # General settings
     ticket_request_item = forms.ModelChoiceField(
         label='Ticket',
         queryset=Item.objects.none(),
         required=False,
-        empty_label='Choose a Ticket'
+        empty_label='Choose a Ticket',
+        help_text="We will render the questions assigned to this Ticket in the Form"
+    )
+
+    ticket_request_quota = forms.ModelChoiceField(
+        label='Ticket Quota',
+        queryset=Quota.objects.none(),
+        required=False,
+        empty_label='Choose a Quota',
+        help_text="Voucher will be created for any ticket under this quota"
     )
 
     def __init__(self, *args, **kwargs):
@@ -27,6 +34,9 @@ class TicketRequestsSettingsForm(I18nForm, SettingsForm):
 
         # Load tickets
         self.fields['ticket_request_item'].queryset = Item.objects.filter(event=self.event)
+
+        # Load quotas
+        self.fields['ticket_request_quota'].queryset = Quota.objects.filter(event=self.event)
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
