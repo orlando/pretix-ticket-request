@@ -24,17 +24,33 @@
                 <thead>
                 <tr>
                     <th>{% trans "Email" %}</th>
-                    <th>{% trans "Status" %}
-                    </th>
+                    <th>{% trans "Status" %}</th>
+                    <th></th>
                 </tr>
                 </thead>
                 <tbody>
-                {% for p in ticket_requests %}
+                {% for tr in ticket_requests %}
                     <tr>
                         <td>
-                            <strong><a href="{% url "plugins:pretix_ticket_request:edit" organizer=request.event.organizer.slug event=request.event.slug ticket_request=tr.id %}">{{ tr.email }}</a></strong>
+                            <strong>{{ tr.email }}</strong>
                         </td>
-                        <td class="text-right flip">{% include "pretix_ticket_request/fragment_status.html" with ticket_request=tr %}</td>
+                        <td class="text-left">{% include "pretix_ticket_request/fragment_status.html" with ticket_request=tr %}</td>
+                        <td>
+                            {% if tr.status == "pending" %}
+                                <a href=""
+                                        class="btn btn-success btn-xs" data-toggle="tooltip"
+                                        title="{% trans "Approve" %}">
+                                        {% trans "Approve" %}
+                                    <span class="fa fa-check"></span>
+                                </a>
+                                <a href=""
+                                        class="btn btn-danger btn-xs" data-toggle="tooltip"
+                                        title="{% trans "Reject" %}">
+                                        {% trans "Reject" %}
+                                    <span class="fa fa-times"></span>
+                                </a>
+                            {% endif %}
+                        </td>
                     </tr>
                 {% endfor %}
                 </tbody>

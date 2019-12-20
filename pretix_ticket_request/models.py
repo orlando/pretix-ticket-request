@@ -18,14 +18,15 @@ class TicketRequest(LoggedModel):
     )
 
     event = models.ForeignKey('pretixbase.Event', on_delete=models.CASCADE)
-    waiting_list_entry = models.ForeignKey('pretixbase.WaitingListEntry', on_delete=models.PROTECT)
+    waiting_list_entry = models.ForeignKey('pretixbase.WaitingListEntry', on_delete=models.PROTECT, null=True)
     email = models.EmailField(unique=True, db_index=True, null=False, blank=False,
                               verbose_name=_('E-mail'), max_length=190)
     status = models.CharField(
         max_length=10,
         choices=STATUS_CHOICE,
         verbose_name=_("Status"),
-        db_index=True
+        db_index=True,
+        default=STATUS_PENDING
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
