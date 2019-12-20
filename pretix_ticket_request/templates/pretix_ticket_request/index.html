@@ -1,0 +1,45 @@
+{% extends "pretixcontrol/event/base.html" %}
+{% load i18n %}
+{% load compress %}
+{% load static %}
+{% load eventurl %}
+{% block title %}{% trans "Ticket Requests" %}{% endblock %}
+{% block content %}
+    <h1>{% trans "Ticket Requests" %}</h1>
+    {% if ticket_requests|length == 0 %}
+        <div class="empty-collection">
+            <p>
+                {% blocktrans trimmed %}
+                    We haven't received any ticket requests yet.
+                {% endblocktrans %}
+            </p>
+        </div>
+    {% else %}
+        <p>
+            <a href="{% url "plugins:pretix_pages:create" organizer=request.event.organizer.slug event=request.event.slug %}" class="btn btn-default"><i class="fa fa-plus"></i> {% trans "Create a new page" %}
+            </a>
+        </p>
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                <tr>
+                    <th>{% trans "Email" %}</th>
+                    <th>{% trans "Status" %}
+                    </th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for p in ticket_requests %}
+                    <tr>
+                        <td>
+                            <strong><a href="{% url "plugins:pretix_ticket_request:edit" organizer=request.event.organizer.slug event=request.event.slug ticket_request=tr.id %}">{{ tr.email }}</a></strong>
+                        </td>
+                        <td class="text-right flip">{% include "pretix_ticket_request/fragment_status.html" with ticket_request=tr %}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% include "pretixcontrol/pagination.html" %}
+    {% endif %}
+{% endblock %}

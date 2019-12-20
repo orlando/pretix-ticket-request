@@ -2,21 +2,23 @@ from django.http import Http404
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.decorators import method_decorator
-from django.views.generic import TemplateView
+from django.views.generic import (TemplateView, ListView)
 from pretix.base.models import Event
 from pretix.control.views.event import (
     EventSettingsFormView, EventSettingsViewMixin,
 )
+from pretix.control.permissions import EventPermissionRequiredMixin, event_permission_required
 from pretix.presale.utils import event_view
 
 from .forms import TicketRequestsSettingsForm
+from .models import TicketRequest
 
 
-class SettingsView(EventSettingsViewMixin, EventSettingsFormView):
+class TicketRequestSettings(EventSettingsViewMixin, EventSettingsFormView):
     model = Event
     form_class = TicketRequestsSettingsForm
     template_name = 'pretix_ticket_request/settings.html'
-    permission = 'can_change_settings'
+    permission = 'can_change_event_settings'
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -31,3 +33,14 @@ class SettingsView(EventSettingsViewMixin, EventSettingsFormView):
                 'event': self.request.event.slug,
             },
         )
+
+
+class TicketRequestList(EventPermissionRequiredMixin, ListView):
+    model = TicketRequest
+    context_object_name = 'ticket_requests'
+    paginate_by = 20
+    template_name = 'pretix_ticket_request/index.html'
+    permission = 'can_change_event_settings'
+
+    def get_queryset(self):
+        return TicketRequest.objects.filter(event=self.request.event)

@@ -1,16 +1,16 @@
 from django.conf.urls import url
 
-from .views import SettingsView
+from . import views
 
 urlpatterns = [
     url(
         r'^control/event/(?P<organizer>[^/]+)/(?P<event>[^/]+)/ticket-requests/settings/',
-        SettingsView.as_view(),
+        views.TicketRequestSettings.as_view(),
         name='settings',
     ),
     url(
         r'^control/event/(?P<organizer>[^/]+)/(?P<event>[^/]+)/ticket-requests/',
-        SettingsView.as_view(),
-        name='control',
+        views.TicketRequestList.as_view(),
+        name='list',
     ),
 ]
