@@ -44,6 +44,16 @@ class TicketRequestsSettingsForm(I18nForm, SettingsForm):
 
 
 class TicketRequestForm(forms.Form):
+    name = forms.CharField(
+        label=_("Name"),
+        required=True,
+    )
+
+    email = forms.EmailField(
+        label=_("Email"),
+        required=True,
+    )
+
     years_attended_iff = forms.MultipleChoiceField(
         label='Have you attended the IFF before?',
         choices=(
@@ -127,6 +137,36 @@ class TicketRequestForm(forms.Form):
             ("Other", _("Other")),
         ),
         widget=forms.CheckboxSelectMultiple(),
+    )
+
+    professional_title = forms.CharField(
+        label=_("Professional Title"),
+        required=False,
+    )
+
+    organization = forms.CharField(
+        label=_("Organization"),
+        required=False,
+    )
+
+    project = forms.CharField(
+        label=_("Project"),
+        required=False,
+    )
+
+    follow_coc = forms.BooleanField(
+        label=_("Do you agree to respect and follow IFF’s Code of Conduct?"),
+        required=True,
+    )
+
+    subscribe_mailing_list = forms.BooleanField(
+        label=_("Would you like to subscribe to the IFF Mailing List?"),
+        required=False,
+    )
+
+    mattermost_invite = forms.BooleanField(
+        label=_("Would you like to receive a Mattermost invite?"),
+        required=False,
     )
 
     def __init__(self, *args, **kwargs):
