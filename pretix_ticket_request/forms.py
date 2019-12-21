@@ -10,6 +10,7 @@ from i18nfield.forms import (
 from pretix.base.forms import SettingsForm
 from pretix.base.forms.widgets import DatePickerWidget
 from pretix.base.models import (Item, Quota)
+from .models import TicketRequest
 
 
 class TicketRequestsSettingsForm(I18nForm, SettingsForm):
@@ -43,7 +44,7 @@ class TicketRequestsSettingsForm(I18nForm, SettingsForm):
         super().save(*args, **kwargs)
 
 
-class TicketRequestForm(forms.Form):
+class TicketRequestForm(forms.ModelForm):
     name = forms.CharField(
         label=_("Name"),
         required=True,
@@ -88,14 +89,6 @@ class TicketRequestForm(forms.Form):
     country = forms.ChoiceField(
         label=_("Country of Origin"),
         choices=Countries()
-    )
-
-    is_refugee = forms.TypedChoiceField(
-        label=_("Do you identify as being part of a refugee diaspora community?"),
-        choices=(
-            ((True, 'Yes'), (False, 'No'))
-        ),
-        widget=forms.RadioSelect
     )
 
     is_refugee = forms.TypedChoiceField(
@@ -164,10 +157,45 @@ class TicketRequestForm(forms.Form):
         required=False,
     )
 
-    mattermost_invite = forms.BooleanField(
+    receive_mattermost_invite = forms.BooleanField(
         label=_("Would you like to receive a Mattermost invite?"),
         required=False,
     )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        if self.instance:
+            meta_json = self.instance.data
+            for field in self.Meta.json_fields:
+                if meta_json.get(field):
+                    self.fields[field].initial = meta_json.get(field)
+
+    def save(self, commit=True):
+        meta_json = self.instance.data
+        for field in self.Meta.json_fields:
+            meta_json[field] = self.cleaned_data[field]
+        self.instance.data = meta_json
+
+        return super().save(commit=commit)
+
+    class Meta:
+        model = TicketRequest
+        fields = (
+            'name',
+            'email',
+        )
+        json_fields = (
+            'years_attended_iff',
+            'pgp_key',
+            'gender',
+            'country',
+            'is_refugee',
+            'belongs_to_minority_group',
+            'professional_areas',
+            'professional_title',
+            'organization',
+            'project',
+            'follow_coc',
+            'subscribe_mailing_list',
+            'receive_mattermost_invite',
+        )

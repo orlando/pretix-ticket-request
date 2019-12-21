@@ -2,12 +2,14 @@ import pytz
 
 from decimal import Decimal
 from django import forms
+from django.contrib import messages
 from django.http import Http404
 from django.shortcuts import redirect
 from django.urls import reverse
+from django.utils.translation import ugettext_lazy as _
 from django.utils.decorators import method_decorator
 from django.views.generic import (TemplateView, ListView, FormView)
-from django.db.models import Prefetch
+from django.db import transaction
 from django.utils.functional import cached_property
 from django_countries import countries
 from django_countries.fields import Country, CountryField
@@ -34,7 +36,7 @@ class TicketRequestSettings(EventSettingsViewMixin, EventSettingsFormView):
         kwargs['event'] = self.request.event
         return kwargs
 
-    def get_success_url(self, **kwargs):
+    def get_success_url(self):
         return reverse(
             'plugins:pretix_ticket_request:settings',
             kwargs={
@@ -58,3 +60,25 @@ class TicketRequestList(EventPermissionRequiredMixin, ListView):
 class TicketRequestCreate(FormView):
     form_class = forms.TicketRequestForm
     template_name = 'pretix_ticket_request/request.html'
+
+    def get_success_url(self):
+        return reverse(
+            'plugins:pretix_ticket_request:request',
+            kwargs={
+                'organizer': self.request.event.organizer.slug,
+                'event': self.request.event.slug,
+            },
+        )
+
+    @transaction.atomic
+    def form_valid(self, form):
+        form.instance.event = self.request.event
+        form.save()
+
+        messages.success(self.request, _('Your request has been saved. We will email you if you are approved.'))
+
+        return super().form_valid(form)
+
+
+class TicketRequestThanks(TemplateView):
+    template_name = 'pretix_ticket_request/thanks.html'

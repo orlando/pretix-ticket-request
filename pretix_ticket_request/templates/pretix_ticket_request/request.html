@@ -3,9 +3,9 @@
 {% load bootstrap3 %}
 {% load eventurl %}
 {% load eventsignal %}
-{% block title %}{% trans "Request ticker" %}{% endblock %}
+{% block title %}{% trans "Ticket Request" %}{% endblock %}
 {% block content %}
-    <h2>{% trans "Request ticket" %}</h2>
+    <h2>{% trans "Ticket Request" %}</h2>
     <p>{% trans "Complete the form below to be get into the waiting list. We will review your application and will get a ticket if approved." %}</p>
     <form class="form-horizontal" method="post" enctype="multipart/form-data">
         {% csrf_token %}
@@ -35,7 +35,7 @@
                         {% bootstrap_field form.belongs_to_minority_group layout="control" %}
                         {% bootstrap_field form.follow_coc layout="control" %}
                         {% bootstrap_field form.subscribe_mailing_list layout="control" %}
-                        {% bootstrap_field form.mattermost_invite layout="control" %}
+                        {% bootstrap_field form.receive_mattermost_invite layout="control" %}
                     </div>
                 </div>
             </details>

@@ -1,6 +1,7 @@
 from django.core.validators import RegexValidator
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
+from jsonfallback.fields import FallbackJSONField
 from i18nfield.fields import I18nCharField, I18nTextField
 from pretix.base.models import LoggedModel
 
@@ -28,14 +29,11 @@ class TicketRequest(LoggedModel):
         db_index=True,
         default=STATUS_PENDING
     )
+    data = FallbackJSONField(
+        blank=True, default=dict
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ['created_at', 'status']
-
-
-class TicketRequestAnswer(LoggedModel):
-    ticket_request = models.ForeignKey('pretix_ticket_request.TicketRequest', on_delete=models.CASCADE)
-    question = models.ForeignKey('pretixbase.Question', on_delete=models.PROTECT)
-    answer = models.TextField()
