@@ -1,0 +1,43 @@
+{% extends "pretixpresale/event/base.html" %}
+{% load i18n %}
+{% load bootstrap3 %}
+{% load eventurl %}
+{% load eventsignal %}
+{% block title %}{% trans "Request ticker" %}{% endblock %}
+{% block content %}
+    <h2>{% trans "Request ticket" %}</h2>
+    <p>{% trans "Complete the form below to be get into the waiting list. We will review your application and will get a ticket if approved." %}</p>
+    <form class="form-horizontal" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {% bootstrap_form_errors form type='non_fields' %}
+        <div class="panel-group" id="questions_group">
+            <details class="panel panel-default" open>
+                <summary class="panel-heading">
+                    <h4 class="panel-title">
+                        <strong>{% trans "Attendant information" %}</strong>
+                        <i class="fa fa-angle-down collapse-indicator"></i>
+                    </h4>
+                </summary>
+                <div>
+                    <div class="panel-body questions-form">
+                        {% bootstrap_field form.years_attended_iff layout="control" %}
+                        {% bootstrap_field form.pgp_key layout="control" %}
+                        {% bootstrap_field form.gender layout="control" %}
+                        {% bootstrap_field form.country layout="control" %}
+                        {% bootstrap_field form.is_refugee layout="control" %}
+                        {% bootstrap_field form.belongs_to_minority_group layout="control" %}
+                        {% bootstrap_field form.professional_areas layout="control" %}
+                    </div>
+                </div>
+            </details>
+            <div class="row checkout-button-row">
+                <div class="col-md-4 col-md-offset-4">
+                    <button class="btn btn-block btn-primary btn-lg" type="submit">
+                        {% trans "Submit" %}
+                    </button>
+                </div>
+                <div class="clearfix"></div>
+            </div>
+        </div>
+    </form>
+{% endblock %}

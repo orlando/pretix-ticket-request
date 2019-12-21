@@ -1,23 +1,31 @@
+import pytz
+
+from decimal import Decimal
+from django import forms
 from django.http import Http404
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.decorators import method_decorator
-from django.views.generic import (TemplateView, ListView)
-from pretix.base.models import Event
-from pretix.base.forms import I18nModelForm
-from pretix.control.views.event import (
-    EventSettingsFormView, EventSettingsViewMixin, CreateView
-)
-from pretix.control.permissions import EventPermissionRequiredMixin, event_permission_required
-from pretix.presale.utils import event_view
+from django.views.generic import (TemplateView, ListView, FormView)
+from django.db.models import Prefetch
+from django.utils.functional import cached_property
+from django_countries import countries
+from django_countries.fields import Country, CountryField
+from phonenumber_field.formfields import PhoneNumberField
 
-from .forms import TicketRequestsSettingsForm
+from pretix.base.models import (Event, Item, Question)
+from pretix.control.views.event import (
+    EventSettingsFormView, EventSettingsViewMixin
+)
+from pretix.control.permissions import EventPermissionRequiredMixin
+
+from . import forms
 from .models import TicketRequest
 
 
 class TicketRequestSettings(EventSettingsViewMixin, EventSettingsFormView):
     model = Event
-    form_class = TicketRequestsSettingsForm
+    form_class = forms.TicketRequestsSettingsForm
     template_name = 'pretix_ticket_request/settings.html'
     permission = 'can_change_event_settings'
 
@@ -47,23 +55,6 @@ class TicketRequestList(EventPermissionRequiredMixin, ListView):
         return TicketRequest.objects.filter(event=self.request.event)
 
 
-class TicketRequestForm(I18nModelForm):
-    def __init__(self, *args, **kwargs):
-        self.event = kwargs.get('event')
-        super().__init__(*args, **kwargs)
-
-    class Meta:
-        model = TicketRequest
-        fields = (
-            'email',
-        )
-
-
-class TicketRequestCreate(CreateView):
-    model = TicketRequest
-    form_class = TicketRequestForm
-    template_name = 'pretix_ticket_request/form.html'
-    permission = 'can_change_event_settings'
-
-    def get_queryset(self):
-        return TicketRequest.objects.filter(event=self.request.event)
+class TicketRequestCreate(FormView):
+    form_class = forms.TicketRequestForm
+    template_name = 'pretix_ticket_request/request.html'

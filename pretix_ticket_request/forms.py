@@ -3,6 +3,7 @@ import json
 from django import forms
 from django.db.models.query import QuerySet
 from django.utils.translation import ugettext_lazy as _
+from django_countries import Countries
 from i18nfield.forms import (
     I18nForm, I18nFormField, I18nTextarea, I18nTextInput,
 )
@@ -40,3 +41,93 @@ class TicketRequestsSettingsForm(I18nForm, SettingsForm):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
+
+
+class TicketRequestForm(forms.Form):
+    years_attended_iff = forms.MultipleChoiceField(
+        label='Have you attended the IFF before?',
+        choices=(
+            ("2019", _("2019")),
+            ("2019", _("2019")),
+            ("2018", _("2018")),
+            ("2017", _("2017")),
+            ("2016", _("2016")),
+            ("2015", _("2015 (CTF)")),
+        ),
+        widget=forms.CheckboxSelectMultiple(),
+        required=False,
+    )
+
+    pgp_key = forms.CharField(
+        label=_("PGP Key"),
+        widget=forms.Textarea(),
+        required=False,
+    )
+
+    gender = forms.ChoiceField(
+        label=_("Gender"),
+        choices=(
+            ("Female", _("Female")),
+            ("Gender-nonconforming", _("Gender-nonconforming")),
+            ("Male", _("Male")),
+            ("Other", _("Other")),
+            ("Prefer not to say", _("Prefer not to say")),
+        ),
+    )
+
+    country = forms.ChoiceField(
+        label=_("Country of Origin"),
+        choices=Countries()
+    )
+
+    is_refugee = forms.TypedChoiceField(
+        label=_("Do you identify as being part of a refugee diaspora community?"),
+        choices=(
+            ((True, 'Yes'), (False, 'No'))
+        ),
+        widget=forms.RadioSelect
+    )
+
+    is_refugee = forms.TypedChoiceField(
+        label=_("Do you identify as being part of a refugee diaspora community?"),
+        choices=(
+            ((True, 'Yes'), (False, 'No'))
+        ),
+        widget=forms.RadioSelect
+    )
+
+    belongs_to_minority_group = forms.TypedChoiceField(
+        label=_("Do you identify as being part of a refugee diaspora community?"),
+        choices=(
+            ((True, 'Yes'), (False, 'No'))
+        ),
+        widget=forms.RadioSelect
+    )
+
+    professional_areas = forms.MultipleChoiceField(
+        label='Check the boxes that most closely describe the work you do.',
+        choices=(
+            ("Digital Security Training", _("Digital Security Training")),
+            ("Software/Web Development", _("Software/Web Development")),
+            ("Cryptography", _("Cryptography")),
+            ("Information Security", _("Information Security")),
+            ("Student", _("Student")),
+            ("Frontline Activism", _("Frontline Activism")),
+            ("Research/Academia", _("Research/Academia")),
+            ("Social Sciences", _("Social Sciences")),
+            ("Policy/Internet Governance", _("Policy/Internet Governance")),
+            ("Data Science", _("Data Science")),
+            ("Advocacy", _("Advocacy")),
+            ("Communications", _("Communications")),
+            ("Journalism and Media", _("Journalism and Media")),
+            ("Arts & Culture", _("Arts & Culture")),
+            ("Design", _("Design")),
+            ("Program Management", _("Program Management")),
+            ("Philanthropic/Grantmaking Organization", _("Philanthropic/Grantmaking Organization")),
+            ("Other", _("Other")),
+        ),
+        widget=forms.CheckboxSelectMultiple(),
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
