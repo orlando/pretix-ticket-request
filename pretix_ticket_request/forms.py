@@ -46,18 +46,30 @@ class TicketRequestsSettingsForm(I18nForm, SettingsForm):
 
 class TicketRequestForm(forms.ModelForm):
     name = forms.CharField(
-        label=_("Name"),
+        label=_("Full name"),
+        required=True,
+    )
+
+    public_name = forms.CharField(
+        label=_("Public display name"),
         required=True,
     )
 
     email = forms.EmailField(
         label=_("Email"),
         required=True,
+        widget=forms.TextInput(
+            attrs={
+                'type': 'email',
+                'placeholder': _('example@internetfreedomfestival.org')
+            })
     )
 
     years_attended_iff = forms.MultipleChoiceField(
         label='Have you attended the IFF before?',
+        required=True,
         choices=(
+            ("Not yet!", _("Not yet!")),
             ("2019", _("2019")),
             ("2019", _("2019")),
             ("2018", _("2018")),
@@ -66,13 +78,12 @@ class TicketRequestForm(forms.ModelForm):
             ("2015", _("2015 (CTF)")),
         ),
         widget=forms.CheckboxSelectMultiple(),
-        required=False,
     )
 
     pgp_key = forms.CharField(
         label=_("PGP Key"),
-        widget=forms.Textarea(),
         required=False,
+        widget=forms.Textarea(),
     )
 
     gender = forms.ChoiceField(
@@ -185,6 +196,7 @@ class TicketRequestForm(forms.ModelForm):
             'email',
         )
         json_fields = (
+            'public_name',
             'years_attended_iff',
             'pgp_key',
             'gender',
