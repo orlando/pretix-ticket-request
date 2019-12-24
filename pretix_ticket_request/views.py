@@ -84,7 +84,7 @@ class TicketRequestUpdate(EventPermissionRequiredMixin, UpdateView):
 
     def get_success_url(self):
         return reverse(
-            'plugins:pretix_ticket_request:update',
+            'plugins:pretix_ticket_request:list',
             kwargs={
                 'organizer': self.request.event.organizer.slug,
                 'event': self.request.event.slug,
@@ -113,7 +113,3 @@ class TicketRequestCreate(FormView):
         messages.success(self.request, _('Your request has been saved. We will email you if you are approved.'))
 
         return super().form_valid(form)
-
-
-class TicketRequestThanks(TemplateView):
-    template_name = 'pretix_ticket_request/thanks.html'
