@@ -17,12 +17,13 @@ from phonenumber_field.formfields import PhoneNumberField
 
 from pretix.base.models import (Event, Item, Question)
 from pretix.control.views.event import (
-    EventSettingsFormView, EventSettingsViewMixin
+    EventSettingsFormView, EventSettingsViewMixin, PaginationMixin
 )
 from pretix.control.permissions import EventPermissionRequiredMixin
 
 from . import forms
 from .models import TicketRequest
+from .filter import TicketRequestSearchFilterForm
 
 
 class TicketRequestSettings(EventSettingsViewMixin, EventSettingsFormView):
@@ -46,7 +47,7 @@ class TicketRequestSettings(EventSettingsViewMixin, EventSettingsFormView):
         )
 
 
-class TicketRequestList(EventPermissionRequiredMixin, ListView):
+class TicketRequestList(EventPermissionRequiredMixin, PaginationMixin, ListView):
     model = TicketRequest
     context_object_name = 'ticket_requests'
     paginate_by = 20
@@ -54,7 +55,18 @@ class TicketRequestList(EventPermissionRequiredMixin, ListView):
     permission = 'can_change_event_settings'
 
     def get_queryset(self):
-        return TicketRequest.objects.filter(event=self.request.event)
+        qs = TicketRequest.objects.filter(
+            event=self.request.event
+        )
+
+        if self.filter_form.is_valid():
+            qs = self.filter_form.filter_qs(qs)
+
+        return qs
+
+    @cached_property
+    def filter_form(self):
+        return TicketRequestSearchFilterForm(request=self.request, data=self.request.GET)
 
 
 class TicketRequestUpdate(EventPermissionRequiredMixin, UpdateView):
