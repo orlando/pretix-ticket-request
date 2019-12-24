@@ -26,9 +26,6 @@ class TicketRequestsSettingsForm(I18nForm, SettingsForm):
         self.event = kwargs.pop('event')
         super().__init__(*args, **kwargs)
 
-        # Load tickets
-        self.fields['ticket_request_item'].queryset = Item.objects.filter(event=self.event)
-
         # Load quotas
         self.fields['ticket_request_quota'].queryset = Quota.objects.filter(event=self.event)
 
