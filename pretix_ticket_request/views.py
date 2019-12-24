@@ -11,9 +11,6 @@ from django.utils.decorators import method_decorator
 from django.views.generic import (TemplateView, ListView, FormView, UpdateView)
 from django.db import transaction
 from django.utils.functional import cached_property
-from django_countries import countries
-from django_countries.fields import Country, CountryField
-from phonenumber_field.formfields import PhoneNumberField
 
 from pretix.base.models import (Event, Item, Question)
 from pretix.control.views.event import (
