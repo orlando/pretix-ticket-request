@@ -24,6 +24,7 @@
                 <tr>
                     <th>{% trans "Email" %}</th>
                     <th>{% trans "Status" %}</th>
+                    <th>{% trans "Voucher" %}</th>
                     <th></th>
                 </tr>
                 </thead>
@@ -34,6 +35,13 @@
                             <strong><a href="{% url "plugins:pretix_ticket_request:update" organizer=request.event.organizer.slug event=request.event.slug ticket_request=tr.id %}">{{ tr.email }}</a></strong>
                         </td>
                         <td class="text-left">{% include "pretix_ticket_request/fragment_status.html" with ticket_request=tr %}</td>
+                        <td>
+                            {% if tr.voucher %}
+                                <strong>
+                                    <a href="{% url "control:event.voucher" organizer=request.event.organizer.slug event=request.event.slug voucher=tr.voucher.id %}">{{ tr.voucher.code }}</a>
+                                </strong>
+                            {% endif %}
+                        </td>
                         <td>
                             {% if tr.status == "pending" %}
                                 <a href="{% url "plugins:pretix_ticket_request:approve" organizer=request.event.organizer.slug event=request.event.slug ticket_request=tr.id %}""

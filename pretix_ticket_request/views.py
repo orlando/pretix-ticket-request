@@ -60,7 +60,7 @@ class TicketRequestList(EventPermissionRequiredMixin, PaginationMixin, ListView)
     def get_queryset(self):
         qs = TicketRequest.objects.filter(
             event=self.request.event
-        )
+        ).select_related('voucher')
 
         if self.filter_form.is_valid():
             qs = self.filter_form.filter_qs(qs)
@@ -74,6 +74,9 @@ class TicketRequestList(EventPermissionRequiredMixin, PaginationMixin, ListView)
 
 @event_permission_required("can_change_event_settings")
 def approve(request, organizer, event, ticket_request):
+    ticket_request = request.event.ticket_requests.get(id=ticket_request)
+    ticket_request.approve(user=request.user)
+
     messages.success(request, _('Ticket has been approved.'))
     return redirect('plugins:pretix_ticket_request:list',
                     organizer=request.event.organizer.slug,
@@ -82,7 +85,9 @@ def approve(request, organizer, event, ticket_request):
 
 @event_permission_required("can_change_event_settings")
 def reject(request, organizer, event, ticket_request):
-    # ticket_request = request.event.ticket_requests.get(id=ticket_request)
+    ticket_request = request.event.ticket_requests.get(id=ticket_request)
+    ticket_request.reject(user=request.user)
+
     messages.success(request, _('Ticket has been rejected.'))
     return redirect('plugins:pretix_ticket_request:list',
                     organizer=request.event.organizer.slug,
