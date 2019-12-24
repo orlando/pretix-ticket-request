@@ -14,14 +14,6 @@ from .models import TicketRequest
 
 
 class TicketRequestsSettingsForm(I18nForm, SettingsForm):
-    ticket_request_item = forms.ModelChoiceField(
-        label='Ticket',
-        queryset=Item.objects.none(),
-        required=False,
-        empty_label='Choose a Ticket',
-        help_text="We will render the questions assigned to this Ticket in the Form"
-    )
-
     ticket_request_quota = forms.ModelChoiceField(
         label='Ticket Quota',
         queryset=Quota.objects.none(),
