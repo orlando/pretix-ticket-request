@@ -15,10 +15,6 @@
             </p>
         </div>
     {% else %}
-        <p>
-            <a href="{% url "plugins:pretix_pages:create" organizer=request.event.organizer.slug event=request.event.slug %}" class="btn btn-default"><i class="fa fa-plus"></i> {% trans "Create a new page" %}
-            </a>
-        </p>
         <div class="table-responsive">
             <table class="table table-hover">
                 <thead>
@@ -32,7 +28,7 @@
                 {% for tr in ticket_requests %}
                     <tr>
                         <td>
-                            <strong>{{ tr.email }}</strong>
+                            <strong><a href="{% url "plugins:pretix_ticket_request:update" organizer=request.event.organizer.slug event=request.event.slug ticket_request=tr.id %}">{{ tr.email }}</a></strong>
                         </td>
                         <td class="text-left">{% include "pretix_ticket_request/fragment_status.html" with ticket_request=tr %}</td>
                         <td>

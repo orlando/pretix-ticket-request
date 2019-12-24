@@ -18,10 +18,20 @@ class TicketRequest(LoggedModel):
         (STATUS_WITHDRAWN, _("withdrawn")),
     )
 
-    event = models.ForeignKey('pretixbase.Event', on_delete=models.CASCADE)
-    waiting_list_entry = models.ForeignKey('pretixbase.WaitingListEntry', on_delete=models.PROTECT, null=True)
-    email = models.EmailField(unique=True, db_index=True, null=False, blank=False,
-                              verbose_name=_('E-mail'), max_length=190)
+    event = models.ForeignKey('pretixbase.Event', on_delete=models.CASCADE, related_name="ticket_requests")
+    waiting_list_entry = models.ForeignKey('pretixbase.WaitingListEntry', on_delete=models.PROTECT, null=True, related_name="ticket_request")
+    name = models.CharField(
+        max_length=255,
+        verbose_name=_("Full name"),
+    )
+    email = models.EmailField(
+        unique=True,
+        db_index=True,
+        null=False,
+        blank=False,
+        verbose_name=_('E-mail'),
+        max_length=190
+    )
     status = models.CharField(
         max_length=10,
         choices=STATUS_CHOICE,
@@ -34,6 +44,9 @@ class TicketRequest(LoggedModel):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def approved(self):
+        return self.status == self.STATUS_APPROVED
 
     class Meta:
         ordering = ['created_at', 'status']
