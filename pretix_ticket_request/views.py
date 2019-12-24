@@ -19,7 +19,10 @@ from pretix.base.models import (Event, Item, Question)
 from pretix.control.views.event import (
     EventSettingsFormView, EventSettingsViewMixin, PaginationMixin
 )
-from pretix.control.permissions import EventPermissionRequiredMixin
+from pretix.control.permissions import (
+    EventPermissionRequiredMixin,
+    event_permission_required
+)
 
 from . import forms
 from .models import TicketRequest
@@ -69,19 +72,47 @@ class TicketRequestList(EventPermissionRequiredMixin, PaginationMixin, ListView)
         return TicketRequestSearchFilterForm(request=self.request, data=self.request.GET)
 
 
-class TicketRequestUpdate(EventPermissionRequiredMixin, UpdateView):
-    form_class = forms.TicketRequestForm
-    model = TicketRequest
-    template_name = 'pretix_ticket_request/detail.html'
-    permission = 'can_change_event_settings'
-    context_object_name = 'ticket_request'
+@event_permission_required("can_change_event_settings")
+def approve(request, organizer, event, ticket_request):
+    messages.success(request, _('Ticket has been approved.'))
+    return redirect('plugins:pretix_ticket_request:list',
+                    organizer=request.event.organizer.slug,
+                    event=request.event.slug)
 
+
+@event_permission_required("can_change_event_settings")
+def reject(request, organizer, event, ticket_request):
+    # ticket_request = request.event.ticket_requests.get(id=ticket_request)
+    messages.success(request, _('Ticket has been rejected.'))
+    return redirect('plugins:pretix_ticket_request:list',
+                    organizer=request.event.organizer.slug,
+                    event=request.event.slug)
+
+
+class TicketRequestDetailMixin:
     def get_object(self, queryset=None):
         url = resolve(self.request.path_info)
         try:
             return self.request.event.ticket_requests.get(id=url.kwargs['ticket_request'])
         except TicketRequest.DoesNotExist:
             raise Http404(_("The requested ticket request does not exist."))
+
+    def get_success_url(self):
+        return reverse(
+            'plugins:pretix_ticket_request:list',
+            kwargs={
+                'organizer': self.request.event.organizer.slug,
+                'event': self.request.event.slug,
+            },
+        )
+
+
+class TicketRequestUpdate(EventPermissionRequiredMixin, TicketRequestDetailMixin, UpdateView):
+    form_class = forms.TicketRequestForm
+    model = TicketRequest
+    template_name = 'pretix_ticket_request/detail.html'
+    permission = 'can_change_event_settings'
+    context_object_name = 'ticket_request'
 
     @transaction.atomic
     def form_valid(self, form):
@@ -93,15 +124,6 @@ class TicketRequestUpdate(EventPermissionRequiredMixin, UpdateView):
                 }
             )
         return super().form_valid(form)
-
-    def get_success_url(self):
-        return reverse(
-            'plugins:pretix_ticket_request:list',
-            kwargs={
-                'organizer': self.request.event.organizer.slug,
-                'event': self.request.event.slug,
-            },
-        )
 
 
 class TicketRequestCreate(FormView):

@@ -18,6 +18,16 @@ urlpatterns = [
         views.TicketRequestUpdate.as_view(),
         name='update',
     ),
+    url(
+        r'^control/event/(?P<organizer>[^/]+)/(?P<event>[^/]+)/ticket-request/(?P<ticket_request>\d+)/approve$',
+        views.approve,
+        name='approve',
+    ),
+    url(
+        r'^control/event/(?P<organizer>[^/]+)/(?P<event>[^/]+)/ticket-request/(?P<ticket_request>\d+)/reject$',
+        views.reject,
+        name='reject',
+    ),
 ]
 
 event_patterns = [
