@@ -7,9 +7,10 @@ from django_countries import Countries
 from i18nfield.forms import (
     I18nForm, I18nFormField, I18nTextarea, I18nTextInput,
 )
+from django.core.exceptions import ValidationError
+from pretix.base.validators import EmailBanlistValidator
 from pretix.base.forms import SettingsForm
-from pretix.base.forms.widgets import DatePickerWidget
-from pretix.base.models import (Item, Quota)
+from pretix.base.models import Quota
 from .models import TicketRequest
 
 
@@ -199,3 +200,30 @@ class TicketRequestForm(forms.ModelForm):
             'subscribe_mailing_list',
             'receive_mattermost_invite',
         )
+
+
+class YourAccountStepForm(forms.Form):
+    required_css_class = 'required'
+    email = forms.EmailField(label=_('E-mail'),
+                             validators=[EmailBanlistValidator()],
+                             widget=forms.EmailInput(attrs={'autocomplete': 'section-contact email'})
+                             )
+
+    def __init__(self, *args, **kwargs):
+        self.event = kwargs.pop('event')
+        self.request = kwargs.pop('request')
+
+        super().__init__(*args, **kwargs)
+
+    def clean(self):
+        if self.event.settings.order_email_asked_twice and self.cleaned_data.get('email') and self.cleaned_data.get('email_repeat'):
+            if self.cleaned_data.get('email').lower() != self.cleaned_data.get('email_repeat').lower():
+                raise ValidationError(_('Please enter the same email address twice.'))
+
+    def save(self, commit=True):
+        meta_json = self.instance.data
+        for field in self.Meta.json_fields:
+            meta_json[field] = self.cleaned_data[field]
+        self.instance.data = meta_json
+
+        return super().save(commit=commit)

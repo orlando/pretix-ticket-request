@@ -20,6 +20,8 @@ from pretix.control.permissions import (
     EventPermissionRequiredMixin,
     event_permission_required
 )
+from pretix.presale.views import CartMixin
+from pretix.presale.checkoutflow import TemplateFlowStep
 
 from . import forms
 from .models import TicketRequest
@@ -149,3 +151,38 @@ class TicketRequestCreate(FormView):
         messages.success(self.request, _('Your request has been saved. We will email you if you are approved.'))
 
         return super().form_valid(form)
+
+
+class YourAccountStep(CartMixin, TemplateFlowStep):
+    priority = 1
+    identifier = "account"
+    template_name = 'pretix_ticket_request/checkout_steps/account.html'
+    label = 'Your account'
+    icon = 'user'
+
+    def is_applicable(self, request):
+        return True
+
+    def is_completed(self, request, warn=False):
+        return False
+
+    @cached_property
+    def form(self):
+        initial = {
+            'email': (
+                self.cart_session.get('email', '')
+            )
+        }
+        f = forms.YourAccountStepForm(data=self.request.POST if self.request.method == "POST" else None,
+                                      event=self.request.event,
+                                      request=self.request,
+                                      initial=initial)
+        return f
+
+
+class VerifyAccountStep(TemplateFlowStep):
+    priority = 2
+    identifier = "verify"
+    template_name = 'pretix_ticket_request/checkout_steps/verify.html'
+    label = 'Verify account'
+    icon = 'check'

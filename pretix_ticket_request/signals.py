@@ -3,7 +3,11 @@ from django.dispatch import receiver
 from django.urls import resolve, reverse
 from django.utils.translation import ugettext_lazy as _
 from i18nfield.strings import LazyI18nString
+from django.utils.functional import cached_property
 from pretix.control.signals import nav_event
+from pretix.presale.signals import checkout_flow_steps
+
+from . import views
 
 
 @receiver(nav_event, dispatch_uid='pretix_ticket_request_nav')
@@ -47,3 +51,13 @@ def navbar_info(sender, request, **kwargs):
             ]
         }
     ]
+
+
+@receiver(checkout_flow_steps, dispatch_uid='pretix_ticket_request_your_account_step')
+def your_account_checkout_step(sender, **kwargs):
+    return views.YourAccountStep
+
+
+@receiver(checkout_flow_steps, dispatch_uid='pretix_ticket_request_verify_account_step')
+def verify_account_checkout_step(sender, **kwargs):
+    return views.VerifyAccountStep
