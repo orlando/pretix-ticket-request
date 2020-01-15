@@ -24,6 +24,7 @@
                 <tr>
                     <th>{% trans "Email" %}</th>
                     <th>{% trans "Status" %}</th>
+                    <th>{% trans "Date" %}</th>
                     <th>{% trans "Voucher" %}</th>
                     <th></th>
                 </tr>
@@ -35,6 +36,9 @@
                             <strong><a href="{% url "plugins:pretix_ticket_request:update" organizer=request.event.organizer.slug event=request.event.slug ticket_request=tr.id %}">{{ tr.email }}</a></strong>
                         </td>
                         <td class="text-left">{% include "pretix_ticket_request/fragment_status.html" with ticket_request=tr %}</td>
+                        <td>
+                            {{ tr.created_at|date:"SHORT_DATETIME_FORMAT" }}
+                        </td>
                         <td>
                             {% if tr.voucher %}
                                 <strong>
