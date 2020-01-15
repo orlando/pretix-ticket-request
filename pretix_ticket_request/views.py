@@ -179,6 +179,12 @@ class YourAccountStep(CartMixin, TemplateFlowStep):
                                       initial=initial)
         return f
 
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['form'] = self.form
+        ctx['cart'] = self.get_cart()
+        return ctx
+
 
 class VerifyAccountStep(TemplateFlowStep):
     priority = 2

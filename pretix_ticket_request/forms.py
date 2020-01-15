@@ -215,6 +215,14 @@ class YourAccountStepForm(forms.Form):
 
         super().__init__(*args, **kwargs)
 
+    def get(self, request):
+        self.request = request
+        return self.render()
+
+    def post(self, request):
+        self.request = request
+        return self.render()
+
     def clean(self):
         if self.event.settings.order_email_asked_twice and self.cleaned_data.get('email') and self.cleaned_data.get('email_repeat'):
             if self.cleaned_data.get('email').lower() != self.cleaned_data.get('email_repeat').lower():
