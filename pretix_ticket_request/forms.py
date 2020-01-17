@@ -215,6 +215,11 @@ class YourAccountStepForm(forms.Form):
 
         super().__init__(*args, **kwargs)
 
+        self.fields['email_repeat'] = forms.EmailField(
+            label=_('E-mail address (repeated)'),
+            help_text=_('Please enter the same email address again to make sure you typed it correctly.'),
+        )
+
     def get(self, request):
         self.request = request
         return self.render()
@@ -229,9 +234,4 @@ class YourAccountStepForm(forms.Form):
                 raise ValidationError(_('Please enter the same email address twice.'))
 
     def save(self, commit=True):
-        meta_json = self.instance.data
-        for field in self.Meta.json_fields:
-            meta_json[field] = self.cleaned_data[field]
-        self.instance.data = meta_json
-
         return super().save(commit=commit)
