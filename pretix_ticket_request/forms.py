@@ -220,18 +220,28 @@ class YourAccountStepForm(forms.Form):
             help_text=_('Please enter the same email address again to make sure you typed it correctly.'),
         )
 
-    def get(self, request):
-        self.request = request
-        return self.render()
-
-    def post(self, request):
-        self.request = request
-        return self.render()
-
     def clean(self):
         if self.event.settings.order_email_asked_twice and self.cleaned_data.get('email') and self.cleaned_data.get('email_repeat'):
             if self.cleaned_data.get('email').lower() != self.cleaned_data.get('email_repeat').lower():
                 raise ValidationError(_('Please enter the same email address twice.'))
+
+    def save(self, commit=True):
+        return super().save(commit=commit)
+
+
+class VerifyAccountStepForm(forms.Form):
+    required_css_class = 'required'
+    verification_code = forms.EmailField(label=_('Verification code'),
+                                         max_length=4, min_length=4,
+                                         help_text=_('Enter the 6 digits verification code'),
+                                         widget=forms.EmailInput(attrs={'autocomplete': 'section-contact email'})
+                                         )
+
+    def __init__(self, *args, **kwargs):
+        self.event = kwargs.pop('event')
+        self.request = kwargs.pop('request')
+
+        super().__init__(*args, **kwargs)
 
     def save(self, commit=True):
         return super().save(commit=commit)

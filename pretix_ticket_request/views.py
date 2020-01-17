@@ -166,6 +166,10 @@ class YourAccountStep(CartMixin, TemplateFlowStep):
     def is_completed(self, request, warn=False):
         return False
 
+    def post(self, request):
+        self.request = request
+        return self.render()
+
     @cached_property
     def form(self):
         initial = {
@@ -186,9 +190,33 @@ class YourAccountStep(CartMixin, TemplateFlowStep):
         return ctx
 
 
-class VerifyAccountStep(TemplateFlowStep):
+class VerifyAccountStep(CartMixin, TemplateFlowStep):
     priority = 2
     identifier = "verify"
     template_name = 'pretix_ticket_request/checkout_steps/verify.html'
     label = 'Verify account'
     icon = 'check'
+
+    def is_applicable(self, request):
+        return True
+
+    def is_completed(self, request, warn=False):
+        return False
+
+    def post(self, request):
+        self.request = request
+        return self.render()
+
+    @cached_property
+    def form(self):
+        f = forms.VerifyAccountStepForm(data=self.request.POST if self.request.method == "POST" else None,
+                                        event=self.request.event,
+                                        request=self.request)
+
+        return f
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['form'] = self.form
+        ctx['cart'] = self.get_cart()
+        return ctx
