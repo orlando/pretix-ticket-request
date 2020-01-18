@@ -25,6 +25,7 @@ from pretix.presale.views import CartMixin
 from pretix.presale.checkoutflow import TemplateFlowStep
 
 from . import forms
+from .services import VerificationCode
 from .models import TicketRequest
 from .filter import TicketRequestSearchFilterForm
 
@@ -154,11 +155,11 @@ class TicketRequestCreate(FormView):
         return super().form_valid(form)
 
 
-class YourAccountStep(CartMixin, TemplateFlowStep):
-    priority = 1
-    identifier = "account"
-    template_name = 'pretix_ticket_request/checkout_steps/account.html'
-    label = 'Your account'
+class YourProfileStep(CartMixin, TemplateFlowStep):
+    priority = 52
+    identifier = "profile"
+    template_name = 'pretix_ticket_request/checkout_steps/profile.html'
+    label = 'Your profile'
     icon = 'user'
 
     def is_applicable(self, request):
@@ -166,10 +167,6 @@ class YourAccountStep(CartMixin, TemplateFlowStep):
 
     def is_completed(self, request, warn=False):
         self.request = request
-
-        # at this point, we already validated email
-        if self.cart_session.get('email') and self.cart_session.get('verification_code'):
-            return True
 
         return False
 
@@ -183,16 +180,21 @@ class YourAccountStep(CartMixin, TemplateFlowStep):
         data = self.form.cleaned_data
 
         # generate code, find a better function
-        code = '123456'
+        code_gen = VerificationCode()
 
         # persist email and code in session
         self.cart_session['email'] = data['email']
-        self.cart_session['verification_code'] = code
-
-        # mail code
+        self.cart_session['verification_code'] = code_gen.code
 
         # go to next step
         return redirect(self.get_next_url(request))
+
+    def generate_numeric_token(self):
+        """
+        Generate a random 6 digit string of numbers.
+        We use this formatting to allow leading 0s.
+        """
+        return str("%06d" % randint(0, 999999))
 
     @cached_property
     def form(self):
@@ -201,7 +203,7 @@ class YourAccountStep(CartMixin, TemplateFlowStep):
                 self.cart_session.get('email', '')
             )
         }
-        f = forms.YourAccountStepForm(data=self.request.POST if self.request.method == "POST" else None,
+        f = forms.YourProfileStepForm(data=self.request.POST if self.request.method == "POST" else None,
                                       event=self.request.event,
                                       request=self.request,
                                       initial=initial)
@@ -215,10 +217,10 @@ class YourAccountStep(CartMixin, TemplateFlowStep):
 
 
 class VerifyAccountStep(CartMixin, TemplateFlowStep):
-    priority = 2
+    priority = 51
     identifier = "verify"
     template_name = 'pretix_ticket_request/checkout_steps/verify.html'
-    label = 'Verify account'
+    label = 'Verify email'
     icon = 'check'
 
     def is_applicable(self, request):

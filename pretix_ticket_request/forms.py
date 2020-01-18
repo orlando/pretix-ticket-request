@@ -202,7 +202,7 @@ class TicketRequestForm(forms.ModelForm):
         )
 
 
-class YourAccountStepForm(forms.Form):
+class YourProfileStepForm(forms.Form):
     required_css_class = 'required'
     email = forms.EmailField(label=_('E-mail'),
                              validators=[EmailBanlistValidator()],

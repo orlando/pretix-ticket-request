@@ -53,9 +53,9 @@ def navbar_info(sender, request, **kwargs):
     ]
 
 
-@receiver(checkout_flow_steps, dispatch_uid='pretix_ticket_request_your_account_step')
-def your_account_checkout_step(sender, **kwargs):
-    return views.YourAccountStep
+@receiver(checkout_flow_steps, dispatch_uid='pretix_ticket_request_your_profile_step')
+def your_profile_checkout_step(sender, **kwargs):
+    return views.YourProfileStep
 
 
 @receiver(checkout_flow_steps, dispatch_uid='pretix_ticket_request_verify_account_step')
