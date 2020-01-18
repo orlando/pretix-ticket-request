@@ -5,6 +5,7 @@ from django import forms
 from django.contrib import messages
 from django.http import Http404
 from django.shortcuts import redirect
+from django.core.validators import EmailValidator
 from django.urls import resolve, reverse
 from django.utils.translation import ugettext_lazy as _
 from django.utils.decorators import method_decorator
@@ -164,11 +165,34 @@ class YourAccountStep(CartMixin, TemplateFlowStep):
         return True
 
     def is_completed(self, request, warn=False):
+        self.request = request
+
+        # at this point, we already validated email
+        if self.cart_session.get('email') and self.cart_session.get('verification_code'):
+            return True
+
         return False
 
     def post(self, request):
         self.request = request
-        return self.render()
+
+        if not self.form.is_valid():
+            return self.render()
+
+        # get form data
+        data = self.form.cleaned_data
+
+        # generate code, find a better function
+        code = '123456'
+
+        # persist email and code in session
+        self.cart_session['email'] = data['email']
+        self.cart_session['verification_code'] = code
+
+        # mail code
+
+        # go to next step
+        return redirect(self.get_next_url(request))
 
     @cached_property
     def form(self):
@@ -201,10 +225,29 @@ class VerifyAccountStep(CartMixin, TemplateFlowStep):
         return True
 
     def is_completed(self, request, warn=False):
-        return False
+        self.request = request
+
+        return self.cart_session['verification_code_matches']
 
     def post(self, request):
         self.request = request
+
+        # validate form
+        if not self.form.is_valid():
+            return False
+
+        # get form data
+        data = self.form.cleaned_data
+
+        # verify code
+        verification_code_matches = self.cart_session['verification_code'] == data['verification_code']
+
+        # remember code matches
+        if verification_code_matches:
+            self.cart_session['verification_code_matches'] = True
+            return redirect(self.get_next_url(request))
+
+        messages.warning(request, _("Verification code doesn't match."))
         return self.render()
 
     @cached_property

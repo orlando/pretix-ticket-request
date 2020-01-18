@@ -206,7 +206,8 @@ class YourAccountStepForm(forms.Form):
     required_css_class = 'required'
     email = forms.EmailField(label=_('E-mail'),
                              validators=[EmailBanlistValidator()],
-                             widget=forms.EmailInput(attrs={'autocomplete': 'section-contact email'})
+                             widget=forms.EmailInput(attrs={'autocomplete': 'section-contact email'}),
+                             required=True,
                              )
 
     def __init__(self, *args, **kwargs):
@@ -231,11 +232,11 @@ class YourAccountStepForm(forms.Form):
 
 class VerifyAccountStepForm(forms.Form):
     required_css_class = 'required'
-    verification_code = forms.EmailField(label=_('Verification code'),
-                                         max_length=4, min_length=4,
-                                         help_text=_('Enter the 6 digits verification code'),
-                                         widget=forms.EmailInput(attrs={'autocomplete': 'section-contact email'})
-                                         )
+    verification_code = forms.CharField(label=_('Verification code'),
+                                        max_length=6, min_length=6,
+                                        help_text=_('Enter the 6 digits verification code'),
+                                        required=True,
+                                        )
 
     def __init__(self, *args, **kwargs):
         self.event = kwargs.pop('event')
