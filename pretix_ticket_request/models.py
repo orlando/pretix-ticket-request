@@ -141,3 +141,16 @@ Your {event} team"""))
 
     class Meta:
         ordering = ['created_at', 'status']
+
+
+class Attendee(LoggedModel):
+    event = models.ForeignKey('pretixbase.Event', on_delete=models.CASCADE, related_name="attendees")
+    verified = models.BooleanField(default=False)
+    profile = FallbackJSONField(
+        blank=True, default=dict
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['created_at']

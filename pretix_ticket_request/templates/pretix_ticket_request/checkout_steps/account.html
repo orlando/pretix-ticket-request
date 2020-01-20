@@ -3,7 +3,7 @@
 {% load bootstrap3 %}
 {% load rich_text %}
 {% block inner %}
-    <p>{% trans "Complete your profile." %}</p>
+    <p>{% trans "Enter a valid email address." %}</p>
     <p class="required-legend">
         {% blocktrans trimmed %}
             You need to fill all fields that are marked with <span>*</span> to continue.
@@ -22,7 +22,7 @@
                 </summary>
                 <div id="account">
                     <div class="panel-body questions-form">
-                        {% include "pretix_ticket_request/profile_form.html" with form=form %}
+                        {% bootstrap_form form layout="horizontal" %}
                     </div>
               </div>
             </details>
