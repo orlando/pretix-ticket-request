@@ -22,7 +22,22 @@
                 </summary>
                 <div id="account">
                     <div class="panel-body questions-form">
-                        {% include "pretix_ticket_request/profile_form.html" with form=form %}
+                        {% bootstrap_field form.name layout="control" %}
+                        {% bootstrap_field form.public_name layout="control" %}
+                        {% bootstrap_field form.gender layout="control" %}
+                        {% bootstrap_field form.country layout="control" %}
+                        {% bootstrap_field form.professional_title layout="control" %}
+                        {% bootstrap_field form.organization layout="control" %}
+                        {% bootstrap_field form.project layout="control" %}
+                        {% bootstrap_field form.pgp_key layout="control" %}
+
+                        {% bootstrap_field form.years_attended_iff layout="control" %}
+                        {% bootstrap_field form.professional_areas layout="control" %}
+                        {% bootstrap_field form.is_refugee layout="control" %}
+                        {% bootstrap_field form.belongs_to_minority_group layout="control" %}
+                        {% bootstrap_field form.follow_coc layout="control" %}
+                        {% bootstrap_field form.subscribe_mailing_list layout="control" %}
+                        {% bootstrap_field form.receive_mattermost_invite layout="control" %}
                     </div>
               </div>
             </details>
