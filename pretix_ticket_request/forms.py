@@ -259,17 +259,6 @@ class AttendeeProfileForm(forms.Form):
         required=True,
     )
 
-    email = forms.EmailField(
-        label=_("Email"),
-        required=True,
-        widget=forms.TextInput(
-            attrs={
-                'type': 'email',
-                'disabled': 'disabled',
-                'placeholder': _('example@internetfreedomfestival.org')
-            })
-    )
-
     years_attended_iff = forms.MultipleChoiceField(
         label='Have you attended the IFF before?',
         required=True,
