@@ -49,7 +49,19 @@ def navbar_info(sender, request, **kwargs):
                     'active': url.namespace == 'plugins:pretix_ticket_request' and url.url_name == 'settings'
                 },
             ]
-        }
+        },
+        {
+            'label': _('Attendees'),
+            'icon': 'user',
+            'url': reverse(
+                'plugins:pretix_ticket_request:attendee_list',
+                kwargs={
+                    'event': request.event.slug,
+                    'organizer': request.organizer.slug,
+                },
+            ),
+            'active': url.namespace == 'plugins:pretix_ticket_request' and url.url_name == 'attendee_list'
+        },
     ]
 
 

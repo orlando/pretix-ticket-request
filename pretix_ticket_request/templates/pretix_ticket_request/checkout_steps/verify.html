@@ -3,8 +3,8 @@
 {% load bootstrap3 %}
 {% load rich_text %}
 {% block inner %}
-    <p>{% trans "We just sent a verification email to the address you provided." %}</p>
-    <p><a href="?resend_code=true">{% trans "Resend the verification code email." %}</a></p>
+    <p>{% trans "We just sent an email with a verification code to the address you provided." %}</p>
+    <p>{% trans "If the code doesn't arrive in 5 minutes, we can" %}<a href="?resend_code=true">{% trans " resend the verification code email." %}</a></p>
     <form class="form-horizontal" method="post" enctype="multipart/form-data">
         {% csrf_token %}
 

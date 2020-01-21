@@ -155,64 +155,55 @@ class TicketRequestCreate(FormView):
         return super().form_valid(form)
 
 
-class YourAccountStep(CartMixin, TemplateFlowStep):
-    priority = 49
-    identifier = "account"
-    template_name = 'pretix_ticket_request/checkout_steps/account.html'
-    label = 'Your account'
-    icon = 'user'
+class AttendeeList(EventPermissionRequiredMixin, PaginationMixin, ListView):
+    model = Attendee
+    context_object_name = 'attendees'
+    paginate_by = 20
+    template_name = 'pretix_ticket_request/attendees/index.html'
+    permission = 'can_change_event_settings'
 
-    def is_applicable(self, request):
-        return True
+    def get_queryset(self):
+        qs = Attendee.objects.filter(
+            event=self.request.event
+        )
+        return qs
 
-    def is_completed(self, request, warn=False):
-        self.request = request
 
-        if self.cart_session['email'] and self.cart_session['verification_code']:
-            return True
+class AttendeeDetailMixin:
+    def get_object(self, queryset=None):
+        url = resolve(self.request.path_info)
+        try:
+            return self.request.event.attendees.get(id=url.kwargs['attendee'])
+        except Attendee.DoesNotExist:
+            raise Http404(_("The requested attendee does not exist."))
 
-        return False
+    def get_success_url(self):
+        return reverse(
+            'plugins:pretix_ticket_request:attendee_list',
+            kwargs={
+                'organizer': self.request.event.organizer.slug,
+                'event': self.request.event.slug,
+            },
+        )
 
-    def post(self, request):
-        self.request = request
-        event = request.event
 
-        if not self.form.is_valid():
-            return self.render()
+class AttendeeDetail(EventPermissionRequiredMixin, AttendeeDetailMixin, UpdateView):
+    form_class = forms.AttendeeDetailForm
+    model = Attendee
+    template_name = 'pretix_ticket_request/attendees/detail.html'
+    permission = 'can_change_event_settings'
+    context_object_name = 'attendee'
 
-        # get form data
-        data = self.form.cleaned_data
-
-        # send verification email
-        email = data['email']
-        mailer = VerificationCodeMailer(event=self.event, email=email)
-        mailer.send()
-
-        # persist email and code in session
-        self.cart_session['email'] = email
-        self.cart_session['verification_code'] = mailer.code
-
-        # go to next step
-        return redirect(self.get_next_url(request))
-
-    @cached_property
-    def form(self):
-        initial = {
-            'email': (
-                self.cart_session.get('email', '')
+    @transaction.atomic
+    def form_valid(self, form):
+        messages.success(self.request, _('Your changes have been saved.'))
+        if form.has_changed():
+            self.object.log_action(
+                'pretix.attendee_profile.changed', user=self.request.user, data={
+                    k: form.cleaned_data.get(k) for k in form.changed_data
+                }
             )
-        }
-        f = forms.YourAccountStepForm(data=self.request.POST if self.request.method == "POST" else None,
-                                      event=self.request.event,
-                                      request=self.request,
-                                      initial=initial)
-        return f
-
-    def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx['form'] = self.form
-        ctx['cart'] = self.get_cart()
-        return ctx
+        return super().form_valid(form)
 
 
 class VerifyAccountStep(CartMixin, TemplateFlowStep):

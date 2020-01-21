@@ -28,6 +28,16 @@ urlpatterns = [
         views.reject,
         name='reject',
     ),
+    url(
+        r'^control/event/(?P<organizer>[^/]+)/(?P<event>[^/]+)/attendees/$',
+        views.AttendeeList.as_view(),
+        name='attendee_list',
+    ),
+    url(
+        r'^control/event/(?P<organizer>[^/]+)/(?P<event>[^/]+)/attendees/(?P<attendee>\d+)/$',
+        views.AttendeeDetail.as_view(),
+        name='attendee_detail',
+    ),
 ]
 
 event_patterns = [
