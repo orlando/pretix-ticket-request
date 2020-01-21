@@ -141,3 +141,27 @@ Your {event} team"""))
 
     class Meta:
         ordering = ['created_at', 'status']
+
+
+class Attendee(LoggedModel):
+    event = models.ForeignKey('pretixbase.Event', on_delete=models.CASCADE, related_name="attendees")
+    verified = models.BooleanField(default=False)
+    email = models.EmailField(
+        unique=True,
+        db_index=True,
+        null=False,
+        blank=False,
+        verbose_name=_('E-mail'),
+        max_length=190
+    )
+    profile = FallbackJSONField(
+        blank=True, default=dict
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['created_at']
+
+    def has_profile(self):
+        return self.profile

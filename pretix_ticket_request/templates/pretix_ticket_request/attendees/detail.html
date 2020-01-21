@@ -1,0 +1,65 @@
+{% extends "pretixcontrol/items/base.html" %}
+{% load i18n %}
+{% load bootstrap3 %}
+{% block title %}{% trans "Ticket Request" %}{% endblock %}
+{% block inside %}
+    <h1>{{ attendee.email }}</h1>
+    <form action="" method="post" class="form-horizontal">
+        {% csrf_token %}
+        {% bootstrap_form_errors form %}
+        <div class="row">
+          <div class="col-xs-12 col-lg-10">
+            <fieldset>
+              <legend>{% trans "Profile" %}</legend>
+              <div class="form-group">
+                <label class="col-md-3 control-label">Verified</label>
+                <div class="col-md-9">
+                  <span>
+                    {{ attendee.verified|title }}
+                  </span>
+                </div>
+              </div>
+            </fieldset>
+          </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-lg-10">
+                <fieldset>
+                    <legend>{% trans "Ticket request details" %}</legend>
+                    {% bootstrap_field form.name layout="control" %}
+                    {% bootstrap_field form.public_name layout="control" %}
+                    {% bootstrap_field form.email layout="control" %}
+                    {% bootstrap_field form.gender layout="control" %}
+                    {% bootstrap_field form.country layout="control" %}
+                    {% bootstrap_field form.professional_title layout="control" %}
+                    {% bootstrap_field form.organization layout="control" %}
+                    {% bootstrap_field form.project layout="control" %}
+                    {% bootstrap_field form.pgp_key layout="control" %}
+
+                    {% bootstrap_field form.years_attended_iff layout="control" %}
+                    {% bootstrap_field form.professional_areas layout="control" %}
+                    {% bootstrap_field form.is_refugee layout="control" %}
+                    {% bootstrap_field form.belongs_to_minority_group layout="control" %}
+                    {% bootstrap_field form.follow_coc layout="control" %}
+                    {% bootstrap_field form.subscribe_mailing_list layout="control" %}
+                    {% bootstrap_field form.receive_mattermost_invite layout="control" %}
+                </fieldset>
+            </div>
+            <div class="col-xs-12 col-lg-2">
+              <div class="panel panel-default">
+                  <div class="panel-heading">
+                      <h3 class="panel-title">
+                          {% trans "Attendee history" %}
+                      </h3>
+                  </div>
+                  {% include "pretixcontrol/includes/logs.html" with obj=attendee %}
+              </div>
+          </div>
+        </div>
+        <div class="form-group submit-group">
+            <button type="submit" class="btn btn-primary btn-save">
+                {% trans "Save" %}
+            </button>
+        </div>
+    </form>
+{% endblock %}

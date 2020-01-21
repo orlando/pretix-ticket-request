@@ -1,0 +1,49 @@
+{% extends "pretixcontrol/event/base.html" %}
+{% load i18n %}
+{% load compress %}
+{% load static %}
+{% load eventurl %}
+{% load bootstrap3 %}
+{% block title %}{% trans "Ticket Requests" %}{% endblock %}
+{% block content %}
+    <h1>{% trans "Attendees" %}</h1>
+    {% if not filter_form.filtered and attendees|length == 0 %}
+        <div class="empty-collection">
+            <p>
+                {% blocktrans trimmed %}
+                    There's no registered attendees yet.
+                {% endblocktrans %}
+            </p>
+        </div>
+    {% else %}
+        <div class="row filter-form">
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                <tr>
+                    <th>{% trans "Email" %}</th>
+                    <th>{% trans "Verified" %}</th>
+                    <th>{% trans "Date" %}</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for at in attendees %}
+                    <tr>
+                        <td>
+                            <strong><a href="{% url "plugins:pretix_ticket_request:attendee_detail" organizer=request.event.organizer.slug event=request.event.slug attendee=at.id %}">{{ at.email }}</a></strong>
+                        </td>
+                        <td>
+                            {{ at.verified }}
+                        </td>
+                        <td>
+                            {{ at.created_at|date:"SHORT_DATETIME_FORMAT" }}
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% include "pretixcontrol/pagination.html" %}
+    {% endif %}
+{% endblock %}
