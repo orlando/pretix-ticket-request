@@ -26,7 +26,7 @@ from pretix.presale.checkoutflow import TemplateFlowStep
 
 from . import forms
 from .services import VerificationCodeMailer
-from .models import TicketRequest
+from .models import (TicketRequest, Attendee)
 from .filter import TicketRequestSearchFilterForm
 
 
@@ -227,26 +227,40 @@ class AttendeeProfileStep(CartMixin, TemplateFlowStep):
 
     def is_completed(self, request, warn=False):
         self.request = request
+        attendee_id = self.cart_session['attendee_id']
 
-        return False
+        if attendee_id:
+            attendee = self.request.event.attendees.get(id=attendee_id)
+            return attendee.has_profile()
+
+        return True
 
     def post(self, request):
         self.request = request
+        event = self.request.event
+
+        if not self.form.is_valid():
+            return self.render()
+
+        import pdb
+        pdb.set_trace()
+
+        attendee = self.form.save()
 
         # go to next step
         return redirect(self.get_next_url(request))
 
     @cached_property
     def form(self):
-        initial = {
-            'email': (
-                self.cart_session.get('email', '')
-            )
-        }
+        attendee_id = self.cart_session['attendee_id']
+        self.attendee = self.request.event.attendees.get(id=attendee_id)
+
+        initial = self.attendee.profile
+        initial['email'] = self.attendee.email
+
         f = forms.AttendeeProfileForm(data=self.request.POST if self.request.method == "POST" else None,
-                                      event=self.request.event,
-                                      request=self.request,
-                                      initial=initial)
+                                      attendee=self.attendee, initial=initial)
+
         return f
 
     def get_context_data(self, **kwargs):
@@ -273,25 +287,32 @@ class VerifyAccountStep(CartMixin, TemplateFlowStep):
 
     def post(self, request):
         self.request = request
+        event = self.request.event
 
-        # validate form
         if not self.form.is_valid():
-            return False
+            return self.render()
 
-        # get form data
         data = self.form.cleaned_data
+        email = self.cart_session['email']
 
-        # verify code
+        # check if code matches
         verification_code_matches = self.cart_session['verification_code'] == data['verification_code']
 
-        # remember code matches
-        if verification_code_matches:
-            # create attendee profile, set verified to true
-            self.cart_session['verification_code_matches'] = True
-            return redirect(self.get_next_url(request))
+        # render error if code doesn't match
+        if not verification_code_matches:
+            messages.warning(request, _("Verification code doesn't match."))
+            return self.render()
 
-        messages.warning(request, _("Verification code doesn't match."))
-        return self.render()
+        # create attendee profile, set verified to true
+        # TODO: this should fetch for existing attendee accounts
+        attendee = Attendee(email=email, verified=True, event=event)
+
+        attendee.save()
+
+        self.cart_session['verification_code_matches'] = True
+        self.cart_session['attendee_id'] = attendee.id
+
+        return redirect(self.get_next_url(request))
 
     @cached_property
     def form(self):

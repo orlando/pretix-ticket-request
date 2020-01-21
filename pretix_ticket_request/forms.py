@@ -248,7 +248,7 @@ class VerifyAccountStepForm(forms.Form):
         return super().save(commit=commit)
 
 
-class AttendeeProfileForm(forms.ModelForm):
+class AttendeeProfileForm(forms.Form):
     name = forms.CharField(
         label=_("Full name"),
         required=True,
@@ -377,24 +377,22 @@ class AttendeeProfileForm(forms.ModelForm):
     )
 
     def __init__(self, *args, **kwargs):
-        self.request = kwargs.pop('request')
-        self.event = kwargs.pop('event')
+        self.attendee = kwargs.pop('attendee')
+
+        meta_json = self.attendee.profile
+        for field in self.Meta.json_fields:
+            if meta_json.get(field):
+                self.fields[field].initial = meta_json.get(field)
 
         super().__init__(*args, **kwargs)
 
-        if self.instance:
-            meta_json = self.instance.profile
-            for field in self.Meta.json_fields:
-                if meta_json.get(field):
-                    self.fields[field].initial = meta_json.get(field)
-
     def save(self, commit=True):
-        meta_json = self.instance.profile
+        meta_json = self.attendee.profile
         for field in self.Meta.json_fields:
             meta_json[field] = self.cleaned_data[field]
-        self.instance.profile = meta_json
+        self.attendee.profile = meta_json
 
-        return super().save(commit=commit)
+        return self.attendee.save()
 
     class Meta:
         model = Attendee
