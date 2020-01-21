@@ -265,6 +265,7 @@ class AttendeeProfileForm(forms.Form):
         widget=forms.TextInput(
             attrs={
                 'type': 'email',
+                'disabled': 'disabled',
                 'placeholder': _('example@internetfreedomfestival.org')
             })
     )
@@ -379,12 +380,12 @@ class AttendeeProfileForm(forms.Form):
     def __init__(self, *args, **kwargs):
         self.attendee = kwargs.pop('attendee')
 
+        super().__init__(*args, **kwargs)
+
         meta_json = self.attendee.profile
         for field in self.Meta.json_fields:
             if meta_json.get(field):
                 self.fields[field].initial = meta_json.get(field)
-
-        super().__init__(*args, **kwargs)
 
     def save(self, commit=True):
         meta_json = self.attendee.profile
@@ -398,6 +399,7 @@ class AttendeeProfileForm(forms.Form):
         model = Attendee
         fields = ()
         json_fields = (
+            'name',
             'public_name',
             'years_attended_iff',
             'pgp_key',

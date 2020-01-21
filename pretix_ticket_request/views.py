@@ -303,9 +303,11 @@ class VerifyAccountStep(CartMixin, TemplateFlowStep):
             messages.warning(request, _("Verification code doesn't match."))
             return self.render()
 
-        # create attendee profile, set verified to true
-        # TODO: this should fetch for existing attendee accounts
-        attendee = Attendee(email=email, verified=True, event=event)
+        # create Attendee
+        attendee, created = self.request.event.attendees.get_or_create(email=email)
+
+        if created:
+            attendee.verified = True
 
         attendee.save()
 
