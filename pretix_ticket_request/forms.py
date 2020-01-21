@@ -92,7 +92,7 @@ class TicketRequestForm(forms.ModelForm):
     )
 
     is_refugee = forms.TypedChoiceField(
-        label=_("Do you identify as being part of a refugee diaspora community?"),
+        label=_("Do you identify as being part of an ethnic, racial or cultural minority group?"),
         choices=(
             ((True, 'Yes'), (False, 'No'))
         ),
@@ -296,7 +296,7 @@ class AttendeeProfileForm(forms.Form):
     )
 
     is_refugee = forms.TypedChoiceField(
-        label=_("Do you identify as being part of a refugee diaspora community?"),
+        label=_("Do you identify as being part of an ethnic, racial or cultural minority group?"),
         choices=(
             ((True, 'Yes'), (False, 'No'))
         ),
@@ -454,7 +454,7 @@ class AttendeeDetailForm(forms.ModelForm):
     )
 
     is_refugee = forms.TypedChoiceField(
-        label=_("Do you identify as being part of a refugee diaspora community?"),
+        label=_("Do you identify as being part of an ethnic, racial or cultural minority group?"),
         choices=(
             ((True, 'Yes'), (False, 'No'))
         ),
