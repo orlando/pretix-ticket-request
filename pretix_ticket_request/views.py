@@ -239,6 +239,7 @@ class VerifyAccountStep(CartMixin, TemplateFlowStep):
         # send code and redirect to remove querystring
         if resend_code:
             self.send_verification_email(event, email)
+            self.cart_session['verification_code_matches'] = False
             self.cart_session['verification_email_sent'] = True
 
             return redirect(request.build_absolute_uri(request.path))
@@ -247,6 +248,7 @@ class VerifyAccountStep(CartMixin, TemplateFlowStep):
             return self.render()
 
         self.send_verification_email(event, email)
+        self.cart_session['verification_code_matches'] = False
         self.cart_session['verification_email_sent'] = True
 
         return self.render()
