@@ -3,7 +3,8 @@
 {% load bootstrap3 %}
 {% load rich_text %}
 {% block inner %}
-    <p>{% trans "Enter the token we sent to your email address." %}</p>
+    <p>{% trans "We just sent a verification email to the address you provided." %}</p>
+    <p><a href="?resend_code=true">{% trans "Resend the verification code email." %}</a></p>
     <form class="form-horizontal" method="post" enctype="multipart/form-data">
         {% csrf_token %}
 
@@ -11,7 +12,7 @@
             <details class="panel panel-default" open>
                 <summary class="panel-heading">
                     <h4 class="panel-title">
-                        <strong>{% trans "Verify Email" %}</strong>
+                        <strong>{% trans "Email verification" %}</strong>
                         <i class="fa fa-angle-down collapse-indicator"></i>
                     </h4>
                 </summary>

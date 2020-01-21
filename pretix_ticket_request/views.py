@@ -156,7 +156,7 @@ class TicketRequestCreate(FormView):
 
 
 class YourAccountStep(CartMixin, TemplateFlowStep):
-    priority = 10
+    priority = 49
     identifier = "account"
     template_name = 'pretix_ticket_request/checkout_steps/account.html'
     label = 'Your account'
@@ -215,8 +215,98 @@ class YourAccountStep(CartMixin, TemplateFlowStep):
         return ctx
 
 
+class VerifyAccountStep(CartMixin, TemplateFlowStep):
+    priority = 51
+    identifier = "verify"
+    template_name = 'pretix_ticket_request/checkout_steps/verify.html'
+    label = 'Verify email'
+    icon = 'check'
+
+    def is_applicable(self, request):
+        return True
+
+    def is_completed(self, request, warn=False):
+        self.request = request
+
+        return self.cart_session['verification_code_matches']
+
+    def get(self, request):
+        self.request = request
+        event = self.request.event
+        email = self.cart_session['email']
+        resend_code = request.GET.get('resend_code')
+
+        # send code and redirect to remove querystring
+        if resend_code:
+            self.send_verification_email(event, email)
+            self.cart_session['verification_email_sent'] = True
+
+            return redirect(request.build_absolute_uri(request.path))
+
+        if self.cart_session.get('verification_email_sent'):
+            return self.render()
+
+        self.send_verification_email(event, email)
+        self.cart_session['verification_email_sent'] = True
+
+        return self.render()
+
+    def post(self, request):
+        self.request = request
+        event = self.request.event
+
+        if not self.form.is_valid():
+            return self.render()
+
+        data = self.form.cleaned_data
+        email = self.cart_session.get('email')
+
+        # check if code matches
+        verification_code_matches = self.cart_session.get('verification_code') == data.get('verification_code')
+
+        # render error if code doesn't match
+        if not verification_code_matches:
+            messages.warning(request, _("Verification code doesn't match."))
+            return self.render()
+
+        # create Attendee
+        attendee, created = self.request.event.attendees.get_or_create(email=email)
+
+        if created:
+            attendee.verified = True
+
+        attendee.save()
+
+        self.cart_session['verification_code_matches'] = True
+        self.cart_session['attendee_id'] = attendee.id
+
+        return redirect(self.get_next_url(request))
+
+    def send_verification_email(self, event, email):
+        mailer = VerificationCodeMailer(event=self.event, email=email)
+        mailer.send()
+
+        # persist email and code in session
+        self.cart_session['email'] = email
+        self.cart_session['verification_code'] = mailer.code
+
+    @cached_property
+    def form(self):
+        f = forms.VerifyAccountStepForm(data=self.request.POST if self.request.method == "POST" else None,
+                                        event=self.request.event,
+                                        request=self.request)
+
+        return f
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['form'] = self.form
+        ctx['cart'] = self.get_cart()
+        return ctx
+
+
 class AttendeeProfileStep(CartMixin, TemplateFlowStep):
-    priority = 12
+    priority = 52
     identifier = "profile"
     template_name = 'pretix_ticket_request/checkout_steps/profile.html'
     label = 'Your profile'
@@ -242,9 +332,6 @@ class AttendeeProfileStep(CartMixin, TemplateFlowStep):
         if not self.form.is_valid():
             return self.render()
 
-        import pdb
-        pdb.set_trace()
-
         attendee = self.form.save()
 
         # go to next step
@@ -260,67 +347,6 @@ class AttendeeProfileStep(CartMixin, TemplateFlowStep):
 
         f = forms.AttendeeProfileForm(data=self.request.POST if self.request.method == "POST" else None,
                                       attendee=self.attendee, initial=initial)
-
-        return f
-
-    def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx['form'] = self.form
-        ctx['cart'] = self.get_cart()
-        return ctx
-
-
-class VerifyAccountStep(CartMixin, TemplateFlowStep):
-    priority = 11
-    identifier = "verify"
-    template_name = 'pretix_ticket_request/checkout_steps/verify.html'
-    label = 'Verify email'
-    icon = 'check'
-
-    def is_applicable(self, request):
-        return True
-
-    def is_completed(self, request, warn=False):
-        self.request = request
-
-        return self.cart_session['verification_code_matches']
-
-    def post(self, request):
-        self.request = request
-        event = self.request.event
-
-        if not self.form.is_valid():
-            return self.render()
-
-        data = self.form.cleaned_data
-        email = self.cart_session['email']
-
-        # check if code matches
-        verification_code_matches = self.cart_session['verification_code'] == data['verification_code']
-
-        # render error if code doesn't match
-        if not verification_code_matches:
-            messages.warning(request, _("Verification code doesn't match."))
-            return self.render()
-
-        # create Attendee
-        attendee, created = self.request.event.attendees.get_or_create(email=email)
-
-        if created:
-            attendee.verified = True
-
-        attendee.save()
-
-        self.cart_session['verification_code_matches'] = True
-        self.cart_session['attendee_id'] = attendee.id
-
-        return redirect(self.get_next_url(request))
-
-    @cached_property
-    def form(self):
-        f = forms.VerifyAccountStepForm(data=self.request.POST if self.request.method == "POST" else None,
-                                        event=self.request.event,
-                                        request=self.request)
 
         return f
 

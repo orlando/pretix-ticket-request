@@ -5,7 +5,7 @@ from django.utils.translation import ugettext_lazy as _
 from i18nfield.strings import LazyI18nString
 from django.utils.functional import cached_property
 from pretix.control.signals import nav_event
-from pretix.presale.signals import (checkout_flow_steps, checkout_all_optional)
+from pretix.presale.signals import checkout_flow_steps
 
 from . import views
 
@@ -53,11 +53,6 @@ def navbar_info(sender, request, **kwargs):
     ]
 
 
-@receiver(checkout_flow_steps, dispatch_uid='pretix_ticket_request_your_account_checkout_step')
-def your_account_checkout_step(sender, **kwargs):
-    return views.YourAccountStep
-
-
 @receiver(checkout_flow_steps, dispatch_uid='pretix_ticket_request_verify_account_checkout_step')
 def verify_account_checkout_step(sender, **kwargs):
     return views.VerifyAccountStep
@@ -66,8 +61,3 @@ def verify_account_checkout_step(sender, **kwargs):
 @receiver(checkout_flow_steps, dispatch_uid='pretix_ticket_request_your_profile_checkout_step')
 def your_profile_checkout_step(sender, **kwargs):
     return views.AttendeeProfileStep
-
-
-@receiver(checkout_all_optional, dispatch_uid='pretix_ticket_request_your_information_all_optional')
-def your_information_all_optional(sender, **kwargs):
-    return True
