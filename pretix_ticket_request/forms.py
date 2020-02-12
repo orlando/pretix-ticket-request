@@ -188,6 +188,8 @@ class TicketRequestForm(forms.ModelForm):
         saved = super().save(commit=commit)
 
         locale = 'en'
+        email = self.instance.email
+        name = self.instance.name
 
         if saved:
             with language(locale):
@@ -202,11 +204,11 @@ Your {event} team"""))
 
                 email_context = {
                     'event': event,
-                    'name': self.instance.name
+                    'name': name
                 }
 
                 mail(
-                    self.email,
+                    email,
                     _('Your {event} ticket request').format(event=str(event)),
                     email_content,
                     email_context,

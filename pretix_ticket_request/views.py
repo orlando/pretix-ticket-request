@@ -155,7 +155,7 @@ class TicketRequestCreate(FormView):
         form.instance.event = self.request.event
         form.save()
 
-        messages.success(self.request, _('Your request has been saved. We will email you if you are approved.'))
+        messages.success(self.request, _('Your request has been saved. A confirmation email was sent.'))
 
         return super().form_valid(form)
 
