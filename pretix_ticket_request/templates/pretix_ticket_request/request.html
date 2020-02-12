@@ -6,7 +6,7 @@
 {% block title %}{% trans "Ticket Request" %}{% endblock %}
 {% block content %}
     <h2>{% trans "Ticket Request" %}</h2>
-    <p>{% trans "Complete the form below to be get into the waiting list. We will review your application and will get a ticket if approved." %}</p>
+    <p>{% trans "Complete the form to request a ticket to the IFF. Once you complete the form, your request will be reviewed by the IFF team, and as space becomes available, tickets will be released." %}</p>
     <form class="form-horizontal" method="post" enctype="multipart/form-data">
         {% csrf_token %}
         {% bootstrap_form_errors form type='non_fields' %}
