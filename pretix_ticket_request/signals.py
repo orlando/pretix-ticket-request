@@ -1,11 +1,12 @@
 from django.db.models import QuerySet
 from django.dispatch import receiver
+from django.template.loader import get_template
 from django.urls import resolve, reverse
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import ugettext_lazy as _, get_language
 from i18nfield.strings import LazyI18nString
 from django.utils.functional import cached_property
 from pretix.control.signals import nav_event
-from pretix.presale.signals import checkout_flow_steps
+from pretix.presale.signals import (checkout_flow_steps, front_page_bottom)
 
 from . import views
 
@@ -73,3 +74,8 @@ def verify_account_checkout_step(sender, **kwargs):
 @receiver(checkout_flow_steps, dispatch_uid='pretix_ticket_request_your_profile_checkout_step')
 def your_profile_checkout_step(sender, **kwargs):
     return views.AttendeeProfileStep
+
+
+@receiver(front_page_bottom, dispatch_uid="pretix_ticket_request_frontpage_link")
+def pretixpresale_front_page_bottom(sender, **kwargs):
+    return get_template('pretix_ticket_request/front_page.html').render({'event': sender, 'organizer': sender.organizer})
