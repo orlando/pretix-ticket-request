@@ -136,6 +136,11 @@ class TicketRequestCreate(FormView):
     form_class = forms.TicketRequestForm
     template_name = 'pretix_ticket_request/request.html'
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['event'] = self.request.event
+        return kwargs
+
     def get_success_url(self):
         return reverse(
             'plugins:pretix_ticket_request:request',

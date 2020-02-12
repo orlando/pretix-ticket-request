@@ -2,15 +2,20 @@ import json
 
 from django import forms
 from django.db.models.query import QuerySet
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import (
+    pgettext_lazy, ugettext_lazy as _, ugettext_noop,
+)
 from django_countries import Countries
 from i18nfield.forms import (
     I18nForm, I18nFormField, I18nTextarea, I18nTextInput,
 )
+from i18nfield.strings import LazyI18nString
 from django.core.exceptions import ValidationError
 from pretix.base.validators import EmailBanlistValidator
 from pretix.base.forms import SettingsForm
 from pretix.base.models import Quota
+from pretix.base.services.mail import mail
+from pretix.base.i18n import language
 from .models import TicketRequest, Attendee
 
 
@@ -163,7 +168,10 @@ class TicketRequestForm(forms.ModelForm):
     )
 
     def __init__(self, *args, **kwargs):
+        self.event = kwargs.pop('event')
+
         super().__init__(*args, **kwargs)
+
         if self.instance:
             meta_json = self.instance.data
             for field in self.Meta.json_fields:
@@ -171,12 +179,42 @@ class TicketRequestForm(forms.ModelForm):
                     self.fields[field].initial = meta_json.get(field)
 
     def save(self, commit=True):
+        event = self.event
         meta_json = self.instance.data
         for field in self.Meta.json_fields:
             meta_json[field] = self.cleaned_data[field]
         self.instance.data = meta_json
 
-        return super().save(commit=commit)
+        saved = super().save(commit=commit)
+
+        locale = 'en'
+
+        if saved:
+            with language(locale):
+                email_content = LazyI18nString.from_gettext(ugettext_noop("""Dear {name} ,
+
+Thank you for applying for an IFF Ticket. We are currently reviewing ticket requests, and as space becomes available, we will be issuing tickets.
+
+If you have any questions, please email team@internetfreedomfestival.org
+
+Best regards,
+Your {event} team"""))
+
+                email_context = {
+                    'event': event,
+                    'name': self.instance.name
+                }
+
+                mail(
+                    self.email,
+                    _('Your {event} ticket request').format(event=str(event)),
+                    email_content,
+                    email_context,
+                    event,
+                    locale=locale
+                )
+
+        return saved
 
     class Meta:
         model = TicketRequest
