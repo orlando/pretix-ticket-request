@@ -238,6 +238,8 @@ class VerifyAccountStep(CartMixin, TemplateFlowStep):
             self.cart_session['verification_code_matches'] = False
             self.cart_session['verification_email_sent'] = True
 
+            messages.success(request, _('New verification code sent.'))
+
             return redirect(request.build_absolute_uri(request.path))
 
         if self.cart_session.get('verification_email_sent'):
