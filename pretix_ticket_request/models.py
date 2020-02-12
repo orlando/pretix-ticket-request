@@ -1,5 +1,6 @@
 from django.core.validators import RegexValidator
 from django.db import models, transaction
+from django_countries.fields import Country
 from django.utils.translation import (
     pgettext_lazy, ugettext_lazy as _, ugettext_noop,
 )
@@ -76,6 +77,10 @@ class TicketRequest(LoggedModel):
         self.status = TicketRequest.STATUS_REJECTED
         self.log_action('pretix.ticket_request.rejected', user=user)
         self.save()
+
+    @property
+    def country(self):
+        return Country(code=self.data.get('country'))
 
     def send_voucher(self, quota_cache=None, user=None):
         event = self.event
