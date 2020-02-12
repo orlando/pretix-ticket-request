@@ -1,12 +1,12 @@
 {% load i18n %}
 {% load bootstrap3 %}
-{% if ticket_request.status == "pending" %}
+{% if status == "pending" %}
     <span data-toggle="tooltip" title="{{ ticket_request.created_at|date:"SHORT_DATETIME_FORMAT" }}"
             class="label label-warning {{ class }}">{% trans "Pending" %}</span>
-{% elif ticket_request.status == "approved" %}
+{% elif status == "approved" %}
     <span class="label label-success {{ class }}">{% trans "Approved" %}</span>
-{% elif ticket_request.status == "rejected" %}
+{% elif status == "rejected" %}
     <span class="label label-danger {{ class }}">{% trans "Rejected" %}</span>
-{% elif ticket_request.status == "withdrawn" %}
+{% elif status == "withdrawn" %}
     <span class="label label-danger {{ class }}">{% trans "Withdrawn" %}</span>
 {% endif %}

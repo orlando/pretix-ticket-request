@@ -2,15 +2,20 @@ import json
 
 from django import forms
 from django.db.models.query import QuerySet
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import (
+    pgettext_lazy, ugettext_lazy as _, ugettext_noop,
+)
 from django_countries import Countries
 from i18nfield.forms import (
     I18nForm, I18nFormField, I18nTextarea, I18nTextInput,
 )
+from i18nfield.strings import LazyI18nString
 from django.core.exceptions import ValidationError
 from pretix.base.validators import EmailBanlistValidator
 from pretix.base.forms import SettingsForm
 from pretix.base.models import Quota
+from pretix.base.services.mail import mail
+from pretix.base.i18n import language
 from .models import TicketRequest, Attendee
 
 
@@ -35,6 +40,7 @@ class TicketRequestsSettingsForm(I18nForm, SettingsForm):
 
 
 class TicketRequestForm(forms.ModelForm):
+    required_css_class = 'required'
     name = forms.CharField(
         label=_("Full name"),
         required=True,
@@ -147,28 +153,51 @@ class TicketRequestForm(forms.ModelForm):
         required=False,
     )
 
-    follow_coc = forms.BooleanField(
+    follow_coc = forms.TypedChoiceField(
         label=_("Do you agree to respect and follow IFF’s Code of Conduct?"),
         required=True,
+        choices=(
+            ((True, 'Yes'), (False, 'No'))
+        ),
+        widget=forms.RadioSelect
     )
 
-    subscribe_mailing_list = forms.BooleanField(
+    subscribe_mailing_list = forms.TypedChoiceField(
         label=_("Would you like to subscribe to the IFF Mailing List?"),
         required=False,
+        choices=(
+            ((True, 'Yes'), (False, 'No'))
+        ),
+        widget=forms.RadioSelect
     )
 
-    receive_mattermost_invite = forms.BooleanField(
+    receive_mattermost_invite = forms.TypedChoiceField(
         label=_("Would you like to receive a Mattermost invite?"),
         required=False,
+        choices=(
+            ((True, 'Yes'), (False, 'No'))
+        ),
+        widget=forms.RadioSelect
     )
 
     def __init__(self, *args, **kwargs):
+        self.event = kwargs.pop('event')
+
         super().__init__(*args, **kwargs)
+
         if self.instance:
             meta_json = self.instance.data
             for field in self.Meta.json_fields:
                 if meta_json.get(field):
                     self.fields[field].initial = meta_json.get(field)
+
+    def clean_follow_coc(self):
+        follow_coc = self.cleaned_data.get('follow_coc')
+
+        if not follow_coc == 'True':
+            raise forms.ValidationError("You have to agree to respect and follow IFF’s Code of Conduct")
+
+        return follow_coc
 
     def save(self, commit=True):
         meta_json = self.instance.data
@@ -176,7 +205,46 @@ class TicketRequestForm(forms.ModelForm):
             meta_json[field] = self.cleaned_data[field]
         self.instance.data = meta_json
 
-        return super().save(commit=commit)
+        saved = super().save(commit=commit)
+
+        if saved:
+            event = self.event
+            email = self.instance.email
+            name = self.instance.name
+
+            self._send_confirmation_email(email=email, name=name, event=event)
+
+        return saved
+
+    def _send_confirmation_email(self, *args, **kwargs):
+        locale = 'en'
+        email = kwargs.pop('email')
+        name = kwargs.pop('name')
+        event = kwargs.pop('event')
+
+        with language(locale):
+            email_content = LazyI18nString.from_gettext(ugettext_noop("""Dear {name} ,
+
+Thank you for applying for an IFF Ticket. We are currently reviewing ticket requests, and as space becomes available, we will be issuing tickets.
+
+If you have any questions, please email team@internetfreedomfestival.org
+
+Best regards,
+Your {event} team"""))
+
+            email_context = {
+                'event': event,
+                'name': name
+            }
+
+            mail(
+                email,
+                _('Your {event} ticket request').format(event=str(event)),
+                email_content,
+                email_context,
+                event,
+                locale=locale
+            )
 
     class Meta:
         model = TicketRequest
@@ -351,19 +419,31 @@ class AttendeeProfileForm(forms.Form):
         required=False,
     )
 
-    follow_coc = forms.BooleanField(
+    follow_coc = forms.TypedChoiceField(
         label=_("Do you agree to respect and follow IFF’s Code of Conduct?"),
         required=True,
+        choices=(
+            ((True, 'Yes'), (False, 'No'))
+        ),
+        widget=forms.RadioSelect
     )
 
-    subscribe_mailing_list = forms.BooleanField(
+    subscribe_mailing_list = forms.TypedChoiceField(
         label=_("Would you like to subscribe to the IFF Mailing List?"),
         required=False,
+        choices=(
+            ((True, 'Yes'), (False, 'No'))
+        ),
+        widget=forms.RadioSelect
     )
 
-    receive_mattermost_invite = forms.BooleanField(
+    receive_mattermost_invite = forms.TypedChoiceField(
         label=_("Would you like to receive a Mattermost invite?"),
         required=False,
+        choices=(
+            ((True, 'Yes'), (False, 'No'))
+        ),
+        widget=forms.RadioSelect
     )
 
     def __init__(self, *args, **kwargs):
@@ -509,19 +589,31 @@ class AttendeeDetailForm(forms.ModelForm):
         required=False,
     )
 
-    follow_coc = forms.BooleanField(
+    follow_coc = forms.TypedChoiceField(
         label=_("Do you agree to respect and follow IFF’s Code of Conduct?"),
         required=True,
+        choices=(
+            ((True, 'Yes'), (False, 'No'))
+        ),
+        widget=forms.RadioSelect
     )
 
-    subscribe_mailing_list = forms.BooleanField(
+    subscribe_mailing_list = forms.TypedChoiceField(
         label=_("Would you like to subscribe to the IFF Mailing List?"),
         required=False,
+        choices=(
+            ((True, 'Yes'), (False, 'No'))
+        ),
+        widget=forms.RadioSelect
     )
 
-    receive_mattermost_invite = forms.BooleanField(
+    receive_mattermost_invite = forms.TypedChoiceField(
         label=_("Would you like to receive a Mattermost invite?"),
         required=False,
+        choices=(
+            ((True, 'Yes'), (False, 'No'))
+        ),
+        widget=forms.RadioSelect
     )
 
     def __init__(self, *args, **kwargs):

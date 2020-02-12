@@ -136,6 +136,11 @@ class TicketRequestCreate(FormView):
     form_class = forms.TicketRequestForm
     template_name = 'pretix_ticket_request/request.html'
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['event'] = self.request.event
+        return kwargs
+
     def get_success_url(self):
         return reverse(
             'plugins:pretix_ticket_request:request',
@@ -150,7 +155,7 @@ class TicketRequestCreate(FormView):
         form.instance.event = self.request.event
         form.save()
 
-        messages.success(self.request, _('Your request has been saved. We will email you if you are approved.'))
+        messages.success(self.request, _('Your request has been saved. A confirmation email was sent.'))
 
         return super().form_valid(form)
 
@@ -232,6 +237,8 @@ class VerifyAccountStep(CartMixin, TemplateFlowStep):
             self.send_verification_email(event, email)
             self.cart_session['verification_code_matches'] = False
             self.cart_session['verification_email_sent'] = True
+
+            messages.success(request, _('New verification code sent.'))
 
             return redirect(request.build_absolute_uri(request.path))
 
