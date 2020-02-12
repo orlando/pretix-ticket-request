@@ -113,19 +113,20 @@ class TicketRequest(LoggedModel):
             self.save()
 
         with language(locale):
-            email_content = LazyI18nString.from_gettext(ugettext_noop("""Hello,
+            email_content = LazyI18nString.from_gettext(ugettext_noop("""Congratulations!! You just got approved for an IFF Ticket. You can redeem it in our ticket shop by entering the following voucher code:
 
-We now have a ticket ready for you! You can redeem it in our ticket shop
-by entering the following voucher code:
-
-{code}
+<strong>{code}</strong>
 
 Alternatively, you can just click on the following link:
 
 <a href="{url}">{url}</a>
 
-Best regards,
-Your {event} team"""))
+We look forward to seeing you soon! If you have any questions, don’t hesitate to reach out to <a href="mailto:team@internetfreedomfestival.org">team@internetfreedomfestival.org</a>.
+
+
+With Glitter,
+
+The IFF team"""))
 
             email_context = {
                 'event': event,
@@ -137,7 +138,7 @@ Your {event} team"""))
 
             mail(
                 self.email,
-                _('You have been selected for {event}').format(event=str(event)),
+                _('Claim your IFF Ticket!!').format(event=str(event)),
                 email_content,
                 email_context,
                 event,
