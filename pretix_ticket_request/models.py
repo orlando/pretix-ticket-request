@@ -113,20 +113,70 @@ class TicketRequest(LoggedModel):
             self.save()
 
         with language(locale):
-            email_content = LazyI18nString.from_gettext(ugettext_noop("""Congratulations!! You just got approved for an IFF Ticket. You can redeem it in our ticket shop by entering the following voucher code:
+            email_content = LazyI18nString.from_gettext(ugettext_noop("""Congratulations!! You just got approved for an IFF Ticket. You can redeem it in our ticket shop by entering the following voucher code following the directions listed below:
 
-<strong>{code}</strong>
+{code}
 
 Alternatively, you can just click on the following link:
 
 <a href="{url}">{url}</a>
 
-We look forward to seeing you soon! If you have any questions, don’t hesitate to reach out to <a href="mailto:team@internetfreedomfestival.org">team@internetfreedomfestival.org</a>.
+If you need a visa for the event, please fill out this form as soon as possible, and someone will get back to you <a href="https://internetfreedomfestival.formstack.com/forms/iff2020_visa">https://internetfreedomfestival.formstack.com/forms/iff2020_visa</a>
 
+We look forward to seeing you soon! If you have any questions, don’t hesitate to reach out to <a href="mailto:team@internetfreedomfestival.org">team@internetfreedomfestival.org</a>. We look forward to seeing you at the IFF!
 
-With Glitter,
+The IFF Team.<br /><br />
 
-The IFF team"""))
+<h3>DIRECTIONS TO CLAIM YOUR TICKET</h3>
+
+<ol>
+  <li>Visit: <a href="https://tickets.internetfreedomfestival.org/iff/2020/">https://tickets.internetfreedomfestival.org/iff/2020/</a></li>
+  <li>Input your voucher code listed above into the section “Redeem a
+voucher” and press “REDEEM VOUCHER”</li>
+  <li>
+    On the next page, select the ticket type you would like by checking
+    ONLY ONE of the three checkboxes listed, and then press “PROCEED TO
+    CHECKOUT”.<br /><br />
+
+    ---> Tickets to the IFF are free but if you are considering donating,
+please select “Supporter Ticket” and include the amount you want to pay,
+or select “Organizational Ticket” which has a set rate.<br /><br />
+
+<b>Please Note * If you pick more than one ticket type, your order
+may be canceled.</b>
+  </li>
+  <li>
+  Review your order and press “PROCEED WITH CHECKOUT”.<br /><br />
+
+  <b>Please Note * If you select the wrong ticket type, you can restart
+the process by clicking the back button on your browser.</b>
+  </li>
+  <li>
+On the next page, please add your email to both boxes listed under
+“Contact Information” and press ”CONTINUE”
+  </li>
+  <li>
+An email from “team@internetfreedomfestival.org” will be sent to you
+with a verification code, which you must insert in the following page in
+the box labeled “VERIFICATION CODE”
+  </li>
+  <li>
+On the “Your Profile” page, you must fill out your personal
+information and press “CONTINUE”
+  </li>
+  <li>
+You will have a chance to review your order once more. If everything
+is correct, press “SUBMIT REGISTRATION”
+  </li>
+  <li>
+On the final page, you can download the PDF of your ticket.   You
+will need this PDF to enter the IFF. Note, the system will also send you
+an email with a PDF, a link to your ticket, as well as your unique
+ticket code.
+  </li>
+</ol>
+
+"""))
 
             email_context = {
                 'event': event,
