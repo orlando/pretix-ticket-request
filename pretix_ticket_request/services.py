@@ -43,7 +43,7 @@ class VerificationCodeMailer:
 
 Here's your verification code. Use it to validate your email and continue the checkout process.
 
-<strong>{code}</strong>
+{code}
 
 Best regards,
 Your {event} team"""))
