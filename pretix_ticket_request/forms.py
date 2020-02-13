@@ -338,6 +338,8 @@ class VerifyAccountStepForm(forms.Form):
 
 
 class AttendeeBaseForm(TicketRequestBaseForm):
+    email = None
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -383,29 +385,20 @@ class AttendeeProfileForm(AttendeeBaseForm):
 
         return self.attendee.save()
 
-    class Meta:
-        model = Attendee
-        fields = ()
-        json_fields = (
-            'name',
-            'public_name',
-            'years_attended_iff',
-            'pgp_key',
-            'gender',
-            'country',
-            'is_refugee',
-            'belongs_to_minority_group',
-            'professional_areas',
-            'professional_title',
-            'organization',
-            'project',
-            'follow_coc',
-            'subscribe_mailing_list',
-            'receive_mattermost_invite',
-        )
-
 
 class AttendeeDetailForm(AttendeeBaseForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if self.instance:
+            self.fields['email'].widget.attrs['readonly'] = True
+
+    def clean_email(self):
+        if self.instance:
+            return self.instance.email
+        else:
+            return self.cleaned_data['email']
+
     def save(self, commit=True):
         meta_json = self.instance.profile
         for field in self.Meta.json_fields:
@@ -418,7 +411,6 @@ class AttendeeDetailForm(AttendeeBaseForm):
         model = Attendee
         fields = (
             'email',
-            'verified'
         )
         json_fields = (
             'name',

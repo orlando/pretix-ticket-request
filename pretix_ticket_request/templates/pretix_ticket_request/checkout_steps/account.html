@@ -11,6 +11,7 @@
     </p>
     <form class="form-horizontal" method="post" enctype="multipart/form-data">
         {% csrf_token %}
+        {% bootstrap_form_errors form %}
 
         <div class="panel-group" id="questions_group">
             <details class="panel panel-default" open>
