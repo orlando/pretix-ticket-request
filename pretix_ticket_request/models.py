@@ -64,7 +64,14 @@ class TicketRequest(LoggedModel):
         return self.status == self.STATUS_APPROVED
 
     def approve(self, user=None):
+        # return if status is not equal to 'pending'
         if self.status != TicketRequest.STATUS_PENDING:
+            return False
+
+        # set status to approved if ticket request has a voucher assigned
+        if self.voucher:
+            self.status = TicketRequest.STATUS_APPROVED
+            self.save()
             return False
 
         self.status = TicketRequest.STATUS_APPROVED

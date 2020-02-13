@@ -114,7 +114,7 @@ class TicketRequestDetailMixin:
 
 
 class TicketRequestUpdate(EventPermissionRequiredMixin, TicketRequestDetailMixin, UpdateView):
-    form_class = forms.TicketRequestForm
+    form_class = forms.TicketRequestBaseForm
     model = TicketRequest
     template_name = 'pretix_ticket_request/detail.html'
     permission = 'can_change_event_settings'
@@ -242,9 +242,11 @@ class VerifyAccountStep(CartMixin, TemplateFlowStep):
 
             return redirect(request.build_absolute_uri(request.path))
 
+        # if code already sent, render without sending email
         if self.cart_session.get('verification_email_sent'):
             return self.render()
 
+        # send verification email when rendering this step
         self.send_verification_email(event, email)
         self.cart_session['verification_code_matches'] = False
         self.cart_session['verification_email_sent'] = True
@@ -270,6 +272,7 @@ class VerifyAccountStep(CartMixin, TemplateFlowStep):
             return self.render()
 
         # create Attendee
+        # at this point we know this user has access to email
         attendee, created = self.request.event.attendees.get_or_create(email=email)
 
         if created:

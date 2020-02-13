@@ -39,7 +39,7 @@ class TicketRequestsSettingsForm(I18nForm, SettingsForm):
         super().save(*args, **kwargs)
 
 
-class TicketRequestForm(forms.ModelForm):
+class TicketRequestBaseForm(forms.ModelForm):
     required_css_class = 'required'
     name = forms.CharField(
         label=_("Full name"),
@@ -180,6 +180,39 @@ class TicketRequestForm(forms.ModelForm):
         widget=forms.RadioSelect
     )
 
+    def clean_follow_coc(self):
+        follow_coc = self.cleaned_data.get('follow_coc')
+
+        if not follow_coc == 'True':
+            raise forms.ValidationError("You have to agree to respect and follow IFF’s Code of Conduct")
+
+        return follow_coc
+
+    class Meta:
+        model = TicketRequest
+        fields = (
+            'name',
+            'email',
+        )
+        json_fields = (
+            'public_name',
+            'years_attended_iff',
+            'pgp_key',
+            'gender',
+            'country',
+            'is_refugee',
+            'belongs_to_minority_group',
+            'professional_areas',
+            'professional_title',
+            'organization',
+            'project',
+            'follow_coc',
+            'subscribe_mailing_list',
+            'receive_mattermost_invite',
+        )
+
+
+class TicketRequestForm(TicketRequestBaseForm):
     def __init__(self, *args, **kwargs):
         self.event = kwargs.pop('event')
 
@@ -190,14 +223,6 @@ class TicketRequestForm(forms.ModelForm):
             for field in self.Meta.json_fields:
                 if meta_json.get(field):
                     self.fields[field].initial = meta_json.get(field)
-
-    def clean_follow_coc(self):
-        follow_coc = self.cleaned_data.get('follow_coc')
-
-        if not follow_coc == 'True':
-            raise forms.ValidationError("You have to agree to respect and follow IFF’s Code of Conduct")
-
-        return follow_coc
 
     def save(self, commit=True):
         meta_json = self.instance.data
@@ -246,29 +271,6 @@ Your {event} team"""))
                 locale=locale
             )
 
-    class Meta:
-        model = TicketRequest
-        fields = (
-            'name',
-            'email',
-        )
-        json_fields = (
-            'public_name',
-            'years_attended_iff',
-            'pgp_key',
-            'gender',
-            'country',
-            'is_refugee',
-            'belongs_to_minority_group',
-            'professional_areas',
-            'professional_title',
-            'organization',
-            'project',
-            'follow_coc',
-            'subscribe_mailing_list',
-            'receive_mattermost_invite',
-        )
-
 
 class YourAccountStepForm(forms.Form):
     required_css_class = 'required'
@@ -316,145 +318,43 @@ class VerifyAccountStepForm(forms.Form):
         return super().save(commit=commit)
 
 
-class AttendeeProfileForm(forms.Form):
-    name = forms.CharField(
-        label=_("Full name"),
-        required=True,
-    )
+class AttendeeBaseForm(TicketRequestBaseForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
-    public_name = forms.CharField(
-        label=_("Public display name"),
-        required=True,
-    )
+        if self.instance:
+            meta_json = self.instance.profile
+            for field in self.Meta.json_fields:
+                if meta_json.get(field):
+                    self.fields[field].initial = meta_json.get(field)
 
-    years_attended_iff = forms.MultipleChoiceField(
-        label='Have you attended the IFF before?',
-        required=True,
-        choices=(
-            ("Not yet!", _("Not yet!")),
-            ("2019", _("2019")),
-            ("2018", _("2018")),
-            ("2017", _("2017")),
-            ("2016", _("2016")),
-            ("2015", _("2015 (CTF)")),
-        ),
-        widget=forms.CheckboxSelectMultiple(),
-    )
+    class Meta:
+        model = Attendee
+        fields = ()
+        json_fields = (
+            'name',
+            'public_name',
+            'years_attended_iff',
+            'pgp_key',
+            'gender',
+            'country',
+            'is_refugee',
+            'belongs_to_minority_group',
+            'professional_areas',
+            'professional_title',
+            'organization',
+            'project',
+            'follow_coc',
+            'subscribe_mailing_list',
+            'receive_mattermost_invite',
+        )
 
-    pgp_key = forms.CharField(
-        label=_("PGP Key"),
-        required=False,
-        widget=forms.Textarea(),
-    )
 
-    gender = forms.ChoiceField(
-        label=_("Gender"),
-        choices=(
-            ("Female", _("Female")),
-            ("Gender-nonconforming", _("Gender-nonconforming")),
-            ("Male", _("Male")),
-            ("Other", _("Other")),
-            ("Prefer not to say", _("Prefer not to say")),
-        ),
-    )
-
-    country = forms.ChoiceField(
-        label=_("Country of Origin"),
-        choices=Countries()
-    )
-
-    is_refugee = forms.TypedChoiceField(
-        label=_("Do you identify as being part of an ethnic, racial or cultural minority group?"),
-        choices=(
-            ((True, 'Yes'), (False, 'No'))
-        ),
-        widget=forms.RadioSelect
-    )
-
-    belongs_to_minority_group = forms.TypedChoiceField(
-        label=_("Do you identify as being part of a refugee diaspora community?"),
-        choices=(
-            ((True, 'Yes'), (False, 'No'))
-        ),
-        widget=forms.RadioSelect
-    )
-
-    professional_areas = forms.MultipleChoiceField(
-        label='Check the boxes that most closely describe the work you do.',
-        choices=(
-            ("Digital Security Training", _("Digital Security Training")),
-            ("Software/Web Development", _("Software/Web Development")),
-            ("Cryptography", _("Cryptography")),
-            ("Information Security", _("Information Security")),
-            ("Student", _("Student")),
-            ("Frontline Activism", _("Frontline Activism")),
-            ("Research/Academia", _("Research/Academia")),
-            ("Social Sciences", _("Social Sciences")),
-            ("Policy/Internet Governance", _("Policy/Internet Governance")),
-            ("Data Science", _("Data Science")),
-            ("Advocacy", _("Advocacy")),
-            ("Communications", _("Communications")),
-            ("Journalism and Media", _("Journalism and Media")),
-            ("Arts & Culture", _("Arts & Culture")),
-            ("Design", _("Design")),
-            ("Program Management", _("Program Management")),
-            ("Philanthropic/Grantmaking Organization", _("Philanthropic/Grantmaking Organization")),
-            ("Other", _("Other")),
-        ),
-        widget=forms.CheckboxSelectMultiple(),
-    )
-
-    professional_title = forms.CharField(
-        label=_("Professional Title"),
-        required=False,
-    )
-
-    organization = forms.CharField(
-        label=_("Organization"),
-        required=False,
-    )
-
-    project = forms.CharField(
-        label=_("Project"),
-        required=False,
-    )
-
-    follow_coc = forms.TypedChoiceField(
-        label=_("Do you agree to respect and follow IFF’s Code of Conduct?"),
-        required=True,
-        choices=(
-            ((True, 'Yes'), (False, 'No'))
-        ),
-        widget=forms.RadioSelect
-    )
-
-    subscribe_mailing_list = forms.TypedChoiceField(
-        label=_("Would you like to subscribe to the IFF Mailing List?"),
-        required=False,
-        choices=(
-            ((True, 'Yes'), (False, 'No'))
-        ),
-        widget=forms.RadioSelect
-    )
-
-    receive_mattermost_invite = forms.TypedChoiceField(
-        label=_("Would you like to receive a Mattermost invite?"),
-        required=False,
-        choices=(
-            ((True, 'Yes'), (False, 'No'))
-        ),
-        widget=forms.RadioSelect
-    )
-
+class AttendeeProfileForm(AttendeeBaseForm):
     def __init__(self, *args, **kwargs):
         self.attendee = kwargs.pop('attendee')
 
         super().__init__(*args, **kwargs)
-
-        meta_json = self.attendee.profile
-        for field in self.Meta.json_fields:
-            if meta_json.get(field):
-                self.fields[field].initial = meta_json.get(field)
 
     def save(self, commit=True):
         meta_json = self.attendee.profile
@@ -486,144 +386,7 @@ class AttendeeProfileForm(forms.Form):
         )
 
 
-class AttendeeDetailForm(forms.ModelForm):
-    name = forms.CharField(
-        label=_("Full name"),
-        required=True,
-    )
-
-    public_name = forms.CharField(
-        label=_("Public display name"),
-        required=True,
-    )
-
-    years_attended_iff = forms.MultipleChoiceField(
-        label='Have you attended the IFF before?',
-        required=True,
-        choices=(
-            ("Not yet!", _("Not yet!")),
-            ("2019", _("2019")),
-            ("2018", _("2018")),
-            ("2017", _("2017")),
-            ("2016", _("2016")),
-            ("2015", _("2015 (CTF)")),
-        ),
-        widget=forms.CheckboxSelectMultiple(),
-    )
-
-    pgp_key = forms.CharField(
-        label=_("PGP Key"),
-        required=False,
-        widget=forms.Textarea(),
-    )
-
-    gender = forms.ChoiceField(
-        label=_("Gender"),
-        choices=(
-            ("Female", _("Female")),
-            ("Gender-nonconforming", _("Gender-nonconforming")),
-            ("Male", _("Male")),
-            ("Other", _("Other")),
-            ("Prefer not to say", _("Prefer not to say")),
-        ),
-    )
-
-    country = forms.ChoiceField(
-        label=_("Country of Origin"),
-        choices=Countries()
-    )
-
-    is_refugee = forms.TypedChoiceField(
-        label=_("Do you identify as being part of an ethnic, racial or cultural minority group?"),
-        choices=(
-            ((True, 'Yes'), (False, 'No'))
-        ),
-        widget=forms.RadioSelect
-    )
-
-    belongs_to_minority_group = forms.TypedChoiceField(
-        label=_("Do you identify as being part of a refugee diaspora community?"),
-        choices=(
-            ((True, 'Yes'), (False, 'No'))
-        ),
-        widget=forms.RadioSelect
-    )
-
-    professional_areas = forms.MultipleChoiceField(
-        label='Check the boxes that most closely describe the work you do.',
-        choices=(
-            ("Digital Security Training", _("Digital Security Training")),
-            ("Software/Web Development", _("Software/Web Development")),
-            ("Cryptography", _("Cryptography")),
-            ("Information Security", _("Information Security")),
-            ("Student", _("Student")),
-            ("Frontline Activism", _("Frontline Activism")),
-            ("Research/Academia", _("Research/Academia")),
-            ("Social Sciences", _("Social Sciences")),
-            ("Policy/Internet Governance", _("Policy/Internet Governance")),
-            ("Data Science", _("Data Science")),
-            ("Advocacy", _("Advocacy")),
-            ("Communications", _("Communications")),
-            ("Journalism and Media", _("Journalism and Media")),
-            ("Arts & Culture", _("Arts & Culture")),
-            ("Design", _("Design")),
-            ("Program Management", _("Program Management")),
-            ("Philanthropic/Grantmaking Organization", _("Philanthropic/Grantmaking Organization")),
-            ("Other", _("Other")),
-        ),
-        widget=forms.CheckboxSelectMultiple(),
-    )
-
-    professional_title = forms.CharField(
-        label=_("Professional Title"),
-        required=False,
-    )
-
-    organization = forms.CharField(
-        label=_("Organization"),
-        required=False,
-    )
-
-    project = forms.CharField(
-        label=_("Project"),
-        required=False,
-    )
-
-    follow_coc = forms.TypedChoiceField(
-        label=_("Do you agree to respect and follow IFF’s Code of Conduct?"),
-        required=True,
-        choices=(
-            ((True, 'Yes'), (False, 'No'))
-        ),
-        widget=forms.RadioSelect
-    )
-
-    subscribe_mailing_list = forms.TypedChoiceField(
-        label=_("Would you like to subscribe to the IFF Mailing List?"),
-        required=False,
-        choices=(
-            ((True, 'Yes'), (False, 'No'))
-        ),
-        widget=forms.RadioSelect
-    )
-
-    receive_mattermost_invite = forms.TypedChoiceField(
-        label=_("Would you like to receive a Mattermost invite?"),
-        required=False,
-        choices=(
-            ((True, 'Yes'), (False, 'No'))
-        ),
-        widget=forms.RadioSelect
-    )
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        if self.instance:
-            meta_json = self.instance.profile
-            for field in self.Meta.json_fields:
-                if meta_json.get(field):
-                    self.fields[field].initial = meta_json.get(field)
-
+class AttendeeDetailForm(AttendeeBaseForm):
     def save(self, commit=True):
         meta_json = self.instance.profile
         for field in self.Meta.json_fields:
