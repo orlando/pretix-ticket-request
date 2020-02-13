@@ -114,7 +114,7 @@ class TicketRequestDetailMixin:
 
 
 class TicketRequestUpdate(EventPermissionRequiredMixin, TicketRequestDetailMixin, UpdateView):
-    form_class = forms.TicketRequestBaseForm
+    form_class = forms.TicketRequestDetailForm
     model = TicketRequest
     template_name = 'pretix_ticket_request/detail.html'
     permission = 'can_change_event_settings'

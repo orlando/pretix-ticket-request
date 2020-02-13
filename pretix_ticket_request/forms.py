@@ -212,6 +212,25 @@ class TicketRequestBaseForm(forms.ModelForm):
         )
 
 
+class TicketRequestDetailForm(TicketRequestBaseForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if self.instance:
+            meta_json = self.instance.data
+            for field in self.Meta.json_fields:
+                if meta_json.get(field):
+                    self.fields[field].initial = meta_json.get(field)
+
+    def save(self, commit=True):
+        meta_json = self.instance.data
+        for field in self.Meta.json_fields:
+            meta_json[field] = self.cleaned_data[field]
+        self.instance.data = meta_json
+
+        return super().save(commit=commit)
+
+
 class TicketRequestForm(TicketRequestBaseForm):
     def __init__(self, *args, **kwargs):
         self.event = kwargs.pop('event')
